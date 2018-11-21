@@ -394,6 +394,55 @@ def songlist_reader_gold(executable_filename, file_entries, songlist_offset, son
 
     return file_entries
 
+def songlist_reader_djtroopers(executable_filename, file_entries, songlist_offset, songlist_count):
+    with open(executable_filename, "rb") as infile:
+        infile.seek(songlist_offset)
+
+        for i in range(songlist_count):
+            infile.seek(songlist_offset + i * 0x134, 0)
+
+            title = infile.read(0x40).decode('shift-jis').strip('\0')
+
+            if len(title) == 0:
+                break
+
+            infile.seek(0x18, 1)
+            video_idx, video_idx2 = struct.unpack("<II", infile.read(8))
+
+            infile.seek(0x60, 1)
+            charts_idx = struct.unpack("<IIIIIIIIII", infile.read(0x28)) # 28??
+            sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
+
+            if video_idx != 0xffffffff and video_idx != 0:
+                file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
+
+            if video_idx2 != 0xffffffff and video_idx2 != 0:
+                file_entries[video_idx2]['real_filename'].append("%s [1].mpg" % title)
+
+            for index, file_index in enumerate(charts_idx):
+                if file_index == 0xffffffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                #file_entries[file_index]['compression'] = decode_lz # Not LZ anymore
+
+            is_keysound = False
+            for index, file_index in enumerate(sounds_idx):
+                if (index % 2) == 0:
+                    is_keysound = not is_keysound
+
+                if file_index == 0xffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                if is_keysound:
+                    file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, index % 2))
+                else:
+                    file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, index % 2))
+
+    return file_entries
+
 
 def songlist_reader_beatmaniaus(executable_filename, file_entries, songlist_offset, songlist_count):
     with open(executable_filename, "rb") as infile:
@@ -815,6 +864,65 @@ game_data = [
             }
         ],
     },
+    {
+        'title': 'beatmania IIDX 15 DJ TROOPERS',
+        'executable': 'SLPM_551.17',
+        'data': [
+            # {
+            #     'output': 'bm2dx15',
+            #     'handler': parse_archives,
+            #     'archives': [
+            #         {
+            #             'filename': "bm2dx15a.dat",
+            #             'offset': 0x134020,
+            #             'entries': 0x240 // 12,
+            #         },
+            #         {
+            #             'filename': "bm2dx15b.dat",
+            #             'offset': 0x134260,
+            #             'entries': 0x27c0 // 12,
+            #         },
+            #         {
+            #             'filename': "bm2dx15c.dat",
+            #             'offset': 0x136a20,
+            #             'entries': 0x630 // 12,
+            #         },
+            #     ],
+            #     'args': [
+            #         0x16fe60,
+            #         0x80bc // 0x134
+            #     ]
+            # },
+            {
+                'output': 'romRival',
+                'handler': parse_rivals,
+                'archives': [
+                    {
+                        'filename': "romRival.dat",
+                        'offset': 0x1376f0,
+                        'entries': 0x1bc28 // 8,
+                    }
+                ],
+                'args': [
+                    0x17a1b0,
+                    0x7ceb4 // 0x24,
+                    filetable_reader_modern
+                ]
+            },
+            {
+                'output': 'data1',
+                'handler': parse_dats,
+                'archives': [
+                    {
+                        'filename': "data1.dat",
+                        'offset': 0x131680,
+                        'entries': 0X1f80 // 16,
+                    }
+                ],
+                'args': []
+            }
+        ],
+    },
 ]
 
 FILETABLE_READERS = {
@@ -823,6 +931,7 @@ FILETABLE_READERS = {
     'slpm_666.21': filetable_reader_modern,
     'slpm_668.28': filetable_reader_modern,
     'slpm_669.95': filetable_reader_modern2,
+    'slpm_551.17': filetable_reader_modern2,
     'slus_212.39': filetable_reader_modern,
 }
 
@@ -832,6 +941,7 @@ SONGLIST_READERS = {
     'slpm_666.21': songlist_reader_happysky,
     'slpm_668.28': songlist_reader_distorted,
     'slpm_669.95': songlist_reader_gold,
+    'slpm_551.17': songlist_reader_djtroopers,
     'slus_212.39': songlist_reader_beatmaniaus,
 }
 
@@ -839,6 +949,7 @@ RIVALS_READERS = {
     'slpm_666.21': rivals_reader_happy_sky,
     'slpm_668.28': rivals_reader_distorted,
     'slpm_669.95': rivals_reader_distorted,
+    'slpm_551.17': rivals_reader_distorted,
 }
 
 DAT_FILETABLE_READERS = {
@@ -846,6 +957,7 @@ DAT_FILETABLE_READERS = {
     'slpm_666.21': dat_filetable_reader_modern,
     'slpm_668.28': dat_filetable_reader_modern,
     'slpm_669.95': dat_filetable_reader_modern,
+    'slpm_551.17': dat_filetable_reader_modern,
     'slus_212.39': dat_filetable_reader_modern,
 }
 
