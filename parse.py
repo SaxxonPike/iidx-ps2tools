@@ -993,6 +993,65 @@ game_data = [
             }
         ],
     },
+    {
+        'title': 'beatmania IIDX 16 Premium Best',
+        'executable': 'SLPM_552.22',
+        'data': [
+            {
+                'output': 'bm2dx16',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': "bm2dx16a.dat",
+                        'offset': 0x140e90,
+                        'entries': 0x2a0 // 12,
+                    },
+                    {
+                        'filename': "bm2dx16b.dat",
+                        'offset': 0x141130,
+                        'entries': 0x28f8 // 12,
+                    },
+                    {
+                        'filename': "bm2dx16c.dat",
+                        'offset': 0x143a28,
+                        'entries': 0x660 // 12,
+                    },
+                ],
+                'args': [
+                    0x17e0f0,
+                    0x7850 // 0x134
+                ]
+            },
+            {
+                'output': 'ROMRIVAL',
+                'handler': parse_rivals,
+                'archives': [
+                    {
+                        'filename': "ROMRIVAL.DAT",
+                        'offset': 0x144640,
+                        'entries': 0x1c4b0 // 8,
+                    }
+                ],
+                'args': [
+                    0x187bc0,
+                    0x26e68 // 0x0b,
+                    filetable_reader_modern
+                ]
+            },
+            {
+                'output': 'data1',
+                'handler': parse_dats,
+                'archives': [
+                    {
+                        'filename': "data1.dat",
+                        'offset': 0x139980,
+                        'entries': 0X5bd0 // 16,
+                    }
+                ],
+                'args': []
+            }
+        ],
+    },
 ]
 
 FILETABLE_READERS = {
@@ -1003,6 +1062,7 @@ FILETABLE_READERS = {
     'slpm_669.95': filetable_reader_modern2,
     'slpm_551.17': filetable_reader_modern2,
     'slpm_552.21': filetable_reader_modern2,
+    'slpm_552.22': filetable_reader_modern2,
     'slus_212.39': filetable_reader_modern,
 }
 
@@ -1014,6 +1074,7 @@ SONGLIST_READERS = {
     'slpm_669.95': songlist_reader_gold,
     'slpm_551.17': songlist_reader_djtroopers,
     'slpm_552.21': songlist_reader_djtroopers,
+    'slpm_552.22': songlist_reader_djtroopers,
     'slus_212.39': songlist_reader_beatmaniaus,
 }
 
@@ -1023,6 +1084,7 @@ RIVALS_READERS = {
     'slpm_669.95': rivals_reader_distorted,
     'slpm_551.17': rivals_reader_distorted,
     'slpm_552.21': rivals_reader_empress,
+    'slpm_552.22': rivals_reader_empress,
 }
 
 DAT_FILETABLE_READERS = {
@@ -1031,8 +1093,9 @@ DAT_FILETABLE_READERS = {
     'slpm_668.28': dat_filetable_reader_modern,
     'slpm_669.95': dat_filetable_reader_modern,
     'slpm_551.17': dat_filetable_reader_modern,
-    'slus_212.39': dat_filetable_reader_modern,
     'slpm_552.21': dat_filetable_reader_modern,
+    'slpm_552.22': dat_filetable_reader_modern,
+    'slus_212.39': dat_filetable_reader_modern,
 }
 
 
