@@ -1244,12 +1244,36 @@ game_data = [
             },
         ],
     },
+    {
+        'title': 'beatmania IIDX 6th Style',
+        'executable': 'SLPM_651.56',
+        'data': [
+            {
+                'output': 'BM2DX6',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': os.path.join("DX2_6", "BM2DX6A.bin"),
+                        'offset':  0x180058,
+                        'entries': 0x1590 // 16,
+                    },
+                    {
+                        'filename': os.path.join("DX2_6", "BM2DX6B.bin"),
+                        'offset': 0x1815e8,
+                        'entries': 0x5b0 // 16,
+                    },
+                ],
+                'args': []
+            },
+        ],
+    },
 ]
 
 FILETABLE_READERS = {
     'slpm_650.06': filetable_reader_3rd,
     'slpm_655.93': filetable_reader_8th,
     'slpm_657.68': filetable_reader_8th,
+    'slpm_651.56': filetable_reader_8th,
     'slpm_664.26': filetable_reader_modern,
     'slpm_666.21': filetable_reader_modern,
     'slpm_668.28': filetable_reader_modern,
@@ -1266,6 +1290,7 @@ SONGLIST_READERS = {
     #'slpm_650.06': songlist_reader_3rd,
     #'slpm_657.68': songlist_reader_8th,
     #'slpm_655.93': songlist_reader_7th,
+    #'slpm_651.56': songlist_reader_6th,
     'slpm_664.26': songlist_reader_red,
     'slpm_666.21': songlist_reader_happysky,
     'slpm_668.28': songlist_reader_distorted,
