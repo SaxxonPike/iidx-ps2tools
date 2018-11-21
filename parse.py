@@ -1216,10 +1216,39 @@ game_data = [
             },
         ],
     },
+    {
+        'title': 'beatmania IIDX 7th Style',
+        'executable': 'SLPM_655.93',
+        'data': [
+            {
+                'output': 'bm2dx7',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': os.path.join("DX2_7", "bm2dx7a.bin"),
+                        'offset': 0x1b6a50,
+                        'entries': 0xa10 // 16,
+                    },
+                    {
+                        'filename': os.path.join("DX2_7", "bm2dx7b.bin"),
+                        'offset': 0x1b7460,
+                        'entries': 0x8a0 // 16,
+                    },
+                    {
+                        'filename': os.path.join("DX2_7", "bm2dx7c.bin"),
+                        'offset': 0x1b9a30,
+                        'entries': 0x2bc0 // 16,
+                    }
+                ],
+                'args': []
+            },
+        ],
+    },
 ]
 
 FILETABLE_READERS = {
     'slpm_650.06': filetable_reader_3rd,
+    'slpm_655.93': filetable_reader_8th,
     'slpm_657.68': filetable_reader_8th,
     'slpm_664.26': filetable_reader_modern,
     'slpm_666.21': filetable_reader_modern,
@@ -1236,6 +1265,7 @@ FILETABLE_READERS = {
 SONGLIST_READERS = {
     #'slpm_650.06': songlist_reader_3rd,
     #'slpm_657.68': songlist_reader_8th,
+    #'slpm_655.93': songlist_reader_7th,
     'slpm_664.26': songlist_reader_red,
     'slpm_666.21': songlist_reader_happysky,
     'slpm_668.28': songlist_reader_distorted,
