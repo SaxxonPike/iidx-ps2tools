@@ -178,6 +178,27 @@ def filetable_reader_3rd(executable_filename, filename, offset, file_count):
     return file_entries
 
 
+def filetable_reader_8th(executable_filename, filename, offset, file_count):
+    file_entries = []
+
+    with open(executable_filename, "rb") as infile:
+        infile.seek(offset)
+
+        for i in range(file_count):
+            offset, _, size, hash = struct.unpack("<IIII", infile.read(16))
+
+            offset *= CHUNK_SIZE
+
+            file_entries.append({
+                'real_filename': [],
+                'filename': filename,
+                'offset': offset,
+                'size': size,
+            })
+
+    return file_entries
+
+
 def parse_file(executable_filename, filename, offset, file_count, output_folder, extract=True, filetable_reader=None):
     if filetable_reader is None:
         filetable_reader = FILETABLE_READERS[executable_filename.lower()] if executable_filename.lower() in FILETABLE_READERS else None
@@ -1167,10 +1188,39 @@ game_data = [
             },
         ],
     },
+    {
+        'title': 'beatmania IIDX 8th Style',
+        'executable': 'SLPM_657.68',
+        'data': [
+            {
+                'output': 'BM2DX8',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': os.path.join("DX2_8", "BM2DX8A.BIN"),
+                        'offset': 0x19a180,
+                        'entries': 0x790 // 16,
+                    },
+                    {
+                        'filename': os.path.join("DX2_8", "BM2DX8B.BIN"),
+                        'offset': 0x19a940,
+                        'entries': 0x740 // 16,
+                    },
+                    {
+                        'filename': os.path.join("DX2_8", "BM2DX8C.BIN"),
+                        'offset': 0x19b080,
+                        'entries': 0x2db0 // 16,
+                    }
+                ],
+                'args': []
+            },
+        ],
+    },
 ]
 
 FILETABLE_READERS = {
     'slpm_650.06': filetable_reader_3rd,
+    'slpm_657.68': filetable_reader_8th,
     'slpm_664.26': filetable_reader_modern,
     'slpm_666.21': filetable_reader_modern,
     'slpm_668.28': filetable_reader_modern,
@@ -1184,7 +1234,8 @@ FILETABLE_READERS = {
 }
 
 SONGLIST_READERS = {
-    #'SLPM_650.06': songlist_reader_3rd,
+    #'slpm_650.06': songlist_reader_3rd,
+    #'slpm_657.68': songlist_reader_8th,
     'slpm_664.26': songlist_reader_red,
     'slpm_666.21': songlist_reader_happysky,
     'slpm_668.28': songlist_reader_distorted,
