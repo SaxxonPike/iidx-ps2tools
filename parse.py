@@ -1134,6 +1134,39 @@ game_data = [
             },
         ],
     },
+    {
+        'title': 'beatmania IIDX 9th Style',
+        'executable': 'SLPM_659.46',
+        'data': [
+            {
+                'output': 'DATA1',
+                'handler': parse_dats,
+                'archives': [
+                    {
+                        'filename': "DATA1.DAT",
+                        'offset': 0xb7c28,
+                        'entries': 0x1180 // 16,
+                    }
+                ],
+                'args': []
+            },
+            {
+                'output': 'DATA2',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': "DATA2.DAT",
+                        'offset': 0xbd230,
+                        'entries': 0x1928 // 8,
+                    },
+                ],
+                'args': [
+                    0xc1500,
+                    0x7bb4 // 0x16c
+                ]
+            },
+        ],
+    },
 ]
 
 FILETABLE_READERS = {
@@ -1146,6 +1179,7 @@ FILETABLE_READERS = {
     'slpm_552.21': filetable_reader_modern2,
     'slpm_552.22': filetable_reader_modern2,
     'slpm_661.80': filetable_reader_modern,
+    'slpm_659.46': filetable_reader_modern,
     'slus_212.39': filetable_reader_modern,
 }
 
@@ -1159,6 +1193,7 @@ SONGLIST_READERS = {
     'slpm_552.21': songlist_reader_djtroopers,
     'slpm_552.22': songlist_reader_djtroopers,
     'slpm_661.80': songlist_reader_10,
+    'slpm_659.46': songlist_reader_10,
     'slus_212.39': songlist_reader_beatmaniaus,
 }
 
@@ -1180,6 +1215,7 @@ DAT_FILETABLE_READERS = {
     'slpm_552.21': dat_filetable_reader_modern,
     'slpm_552.22': dat_filetable_reader_modern,
     'slpm_661.80': dat_filetable_reader_modern,
+    'slpm_659.46': dat_filetable_reader_modern,
     'slus_212.39': dat_filetable_reader_modern,
 }
 
