@@ -245,6 +245,55 @@ def songlist_reader_happysky(executable_filename, file_entries, songlist_offset,
 
     return file_entries
 
+def songlist_reader_10(executable_filename, file_entries, songlist_offset, songlist_count):
+    with open(executable_filename, "rb") as infile:
+        infile.seek(songlist_offset)
+
+        for i in range(songlist_count):
+            infile.seek(songlist_offset + i * 0x16c, 0)
+
+            title = infile.read(0x40).decode('shift-jis').strip('\0')
+
+            if len(title) == 0:
+                title = "%d" % i
+
+            infile.seek(0x18, 1)
+            video_idx, video_idx2 = struct.unpack("<II", infile.read(8))
+
+            infile.seek(0xcc, 1)
+            charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
+            sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
+
+            if video_idx != 0xffffffff and video_idx != 0:
+                file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
+
+            if video_idx2 != 0xffffffff and video_idx2 != 0:
+                file_entries[video_idx2]['real_filename'].append("%s [1].mpg" % title)
+
+            for index, file_index in enumerate(charts_idx):
+                if file_index == 0xffffffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['compression'] = decode_lz
+
+            is_keysound = False
+            for index, file_index in enumerate(sounds_idx):
+                if (index % 2) == 0:
+                    is_keysound = not is_keysound
+
+                if file_index == 0xffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                if is_keysound:
+                    file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, index % 2))
+                else:
+                    file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, index % 2))
+
+    return file_entries
+
 
 def songlist_reader_red(executable_filename, file_entries, songlist_offset, songlist_count):
     with open(executable_filename, "rb") as infile:
@@ -1052,6 +1101,39 @@ game_data = [
             }
         ],
     },
+    {
+        'title': 'beatmania IIDX 10th Style',
+        'executable': 'SLPM_661.80',
+        'data': [
+            {
+                'output': 'data1',
+                'handler': parse_dats,
+                'archives': [
+                    {
+                        'filename': "data1.dat",
+                        'offset': 0xc8e08,
+                        'entries': 0x11b0 // 16,
+                    }
+                ],
+                'args': []
+            },
+            {
+                'output': 'DATA2',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': "DATA2.DAT",
+                        'offset': 0xcdc90,
+                        'entries': 0x1a38 // 8,
+                    },
+                ],
+                'args': [
+                    0x10bae0,
+                    0x7d20 // 0x16c
+                ]
+            },
+        ],
+    },
 ]
 
 FILETABLE_READERS = {
@@ -1063,6 +1145,7 @@ FILETABLE_READERS = {
     'slpm_551.17': filetable_reader_modern2,
     'slpm_552.21': filetable_reader_modern2,
     'slpm_552.22': filetable_reader_modern2,
+    'slpm_661.80': filetable_reader_modern,
     'slus_212.39': filetable_reader_modern,
 }
 
@@ -1075,6 +1158,7 @@ SONGLIST_READERS = {
     'slpm_551.17': songlist_reader_djtroopers,
     'slpm_552.21': songlist_reader_djtroopers,
     'slpm_552.22': songlist_reader_djtroopers,
+    'slpm_661.80': songlist_reader_10,
     'slus_212.39': songlist_reader_beatmaniaus,
 }
 
@@ -1095,6 +1179,7 @@ DAT_FILETABLE_READERS = {
     'slpm_551.17': dat_filetable_reader_modern,
     'slpm_552.21': dat_filetable_reader_modern,
     'slpm_552.22': dat_filetable_reader_modern,
+    'slpm_661.80': dat_filetable_reader_modern,
     'slus_212.39': dat_filetable_reader_modern,
 }
 
