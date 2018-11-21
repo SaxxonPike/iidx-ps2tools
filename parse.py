@@ -163,6 +163,7 @@ def parse_file(executable_filename, filename, offset, file_count, output_folder,
         'slpm_650.06': filetable_reader_3rd,
         'slpm_664.26': filetable_reader_modern,
         'slpm_666.21': filetable_reader_modern,
+        'slpm_668.28': filetable_reader_modern,
         'slus_212.39': filetable_reader_modern,
     }
 
@@ -282,6 +283,56 @@ def songlist_reader_red(executable_filename, file_entries, songlist_offset, song
     return file_entries
 
 
+def songlist_reader_distorted(executable_filename, file_entries, songlist_offset, songlist_count):
+    with open(executable_filename, "rb") as infile:
+        infile.seek(songlist_offset)
+
+        for i in range(songlist_count):
+            infile.seek(songlist_offset + i * 0x118, 0)
+
+            title = infile.read(0x40).decode('shift-jis').strip('\0')
+
+            if len(title) == 0:
+                break
+
+            infile.seek(0x14, 1)
+            video_idx, video_idx2 = struct.unpack("<II", infile.read(8))
+
+            infile.seek(0x5c, 1)
+            charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
+            sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
+
+            if video_idx != 0xffffffff and video_idx != 0:
+                file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
+
+            if video_idx2 != 0xffffffff and video_idx2 != 0:
+                file_entries[video_idx2]['real_filename'].append("%s [1].mpg" % title)
+
+            for index, file_index in enumerate(charts_idx):
+                if file_index == 0xffffffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['compressed'] = True
+
+            is_keysound = False
+            for index, file_index in enumerate(sounds_idx):
+                if (index % 2) == 0:
+                    is_keysound = not is_keysound
+
+                if file_index == 0xffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                if is_keysound:
+                    file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, index % 2))
+                else:
+                    file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, index % 2))
+
+    return file_entries
+
+
 def songlist_reader_beatmaniaus(executable_filename, file_entries, songlist_offset, songlist_count):
     with open(executable_filename, "rb") as infile:
         infile.seek(songlist_offset)
@@ -336,6 +387,7 @@ def parse_songlist(executable_filename, file_entries, songlist_offset, songlist_
         #'SLPM_650.06': songlist_reader_3rd,
         'slpm_664.26': songlist_reader_red,
         'slpm_666.21': songlist_reader_happysky,
+        'slpm_668.28': songlist_reader_distorted,
         'slus_212.39': songlist_reader_beatmaniaus,
     }
 
@@ -377,9 +429,21 @@ def rivals_reader_happy_sky(executable_filename, file_entries, rivals_offset, ri
     return file_entries
 
 
+def rivals_reader_distorted(executable_filename, file_entries, rivals_offset, rivals_count):
+    # TODO: Research this more thoroughly
+    with open(executable_filename, "rb") as infile:
+        for i in range(rivals_count):
+            infile.seek(rivals_offset + (i * 0x24), 0)
+            title = infile.read(0x08).decode('shift-jis').strip('\0').strip()
+            file_entries[i]['real_filename'].append("[%04d] %s.bin" % (i, title))
+
+    return file_entries
+
+
 def parse_rivals(executable_filename, archives, output_folder, rivals_offset, rivals_count):
     rivals_readers = {
         'slpm_666.21': rivals_reader_happy_sky,
+        'slpm_668.28': rivals_reader_distorted,
     }
 
     file_entries = []
@@ -428,6 +492,7 @@ def parse_dats(executable_filename, archives, output_folder):
     dat_filetable_readers = {
         'slpm_664.26': dat_filetable_reader_modern,
         'slpm_666.21': dat_filetable_reader_modern,
+        'slpm_668.28': dat_filetable_reader_modern,
         'slus_212.39': dat_filetable_reader_modern,
     }
 
@@ -588,6 +653,64 @@ game_data = [
                     0x6f40 // 0x140
                 ]
             },
+        ],
+    },
+    {
+        'title': 'beatmania IIDX 13 DistorteD',
+        'executable': 'SLPM_668.28',
+        'data': [
+            {
+                'output': 'bm2dx13',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': "bm2dx13a.dat",
+                        'offset': 0x112a00,
+                        'entries': 0xc0 // 8,
+                    },
+                    {
+                        'filename': "bm2dx13b.dat",
+                        'offset': 0x112ac0,
+                        'entries': 0x1900 // 8,
+                    },
+                    {
+                        'filename': "bm2dx13c.dat",
+                        'offset': 0x1143c0,
+                        'entries': 0x4a0 // 8,
+                    },
+                ],
+                'args': [
+                    0x1353e0,
+                    0x71c0 // 0x118
+                ]
+            },
+            {
+                'output': 'RomRival',
+                'handler': parse_rivals,
+                'archives': [
+                    {
+                        'filename': "RomRival.dat",
+                        'offset': 0x117c70,
+                        'entries': 0x19da8 // 8,
+                    }
+                ],
+                'args': [
+                    0x14c1a0,
+                    0x74574 // 0x24
+                ]
+            },
+            {
+                'output': 'data1',
+                'handler': parse_dats,
+                'archives': [
+                    {
+                        'filename': "data1.dat",
+                        'offset': 0x10d7f8,
+                        'entries': 0X1bf0 // 16,
+                    }
+                ],
+                'args': []
+            }
         ],
     },
 ]
