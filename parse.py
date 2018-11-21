@@ -14,7 +14,6 @@ DIFFICULTY_MAPPING = {
     7: 'DP BEGINNER', # Never used?
 }
 
-
 def decode_lz(input_data):
     # Based on https://github.com/SaxxonPike/scharfrichter/blob/master/Scharfrichter/Compression/BemaniLZ.cs
     BUFFER_MASK = 0x3ff
@@ -109,8 +108,8 @@ def extract_file(filename, table, index, output_folder, output_filename):
         infile.seek(entry['offset'])
         data = infile.read(entry['size'])
 
-        if entry.get('compressed', False):
-            data = decode_lz(data)
+        if entry.get('compression', None) is not None:
+            data = entry['compression'](data)
 
         open(os.path.join(output_folder, get_sanitized_filename(output_filename)), "wb").write(data)
 
@@ -126,6 +125,27 @@ def filetable_reader_modern(executable_filename, filename, offset, file_count):
 
             offset *= CHUNK_SIZE
             size *= CHUNK_SIZE
+
+            file_entries.append({
+                'real_filename': [],
+                'filename': filename,
+                'offset': offset,
+                'size': size,
+            })
+
+    return file_entries
+
+
+def filetable_reader_modern2(executable_filename, filename, offset, file_count):
+    file_entries = []
+
+    with open(executable_filename, "rb") as infile:
+        infile.seek(offset)
+
+        for i in range(file_count):
+            offset, _, size = struct.unpack("<III", infile.read(12))
+
+            offset *= CHUNK_SIZE
 
             file_entries.append({
                 'real_filename': [],
@@ -158,16 +178,9 @@ def filetable_reader_3rd(executable_filename, filename, offset, file_count):
     return file_entries
 
 
-def parse_file(executable_filename, filename, offset, file_count, output_folder, extract=True):
-    filetable_readers = {
-        'slpm_650.06': filetable_reader_3rd,
-        'slpm_664.26': filetable_reader_modern,
-        'slpm_666.21': filetable_reader_modern,
-        'slpm_668.28': filetable_reader_modern,
-        'slus_212.39': filetable_reader_modern,
-    }
-
-    filetable_reader = filetable_readers[executable_filename.lower()] if executable_filename.lower() in filetable_readers else None
+def parse_file(executable_filename, filename, offset, file_count, output_folder, extract=True, filetable_reader=None):
+    if filetable_reader is None:
+        filetable_reader = FILETABLE_READERS[executable_filename.lower()] if executable_filename.lower() in FILETABLE_READERS else None
 
     if filetable_reader is None:
         print("Couldn't find file table reader for", executable_filename)
@@ -214,7 +227,7 @@ def songlist_reader_happysky(executable_filename, file_entries, songlist_offset,
                     continue
 
                 file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
-                file_entries[file_index]['compressed'] = True
+                file_entries[file_index]['compression'] = decode_lz
 
             is_keysound = False
             for index, file_index in enumerate(sounds_idx):
@@ -264,7 +277,7 @@ def songlist_reader_red(executable_filename, file_entries, songlist_offset, song
                     continue
 
                 file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
-                file_entries[file_index]['compressed'] = True
+                file_entries[file_index]['compression'] = decode_lz
 
             is_keysound = False
             for index, file_index in enumerate(sounds_idx):
@@ -314,7 +327,56 @@ def songlist_reader_distorted(executable_filename, file_entries, songlist_offset
                     continue
 
                 file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
-                file_entries[file_index]['compressed'] = True
+                file_entries[file_index]['compression'] = decode_lz
+
+            is_keysound = False
+            for index, file_index in enumerate(sounds_idx):
+                if (index % 2) == 0:
+                    is_keysound = not is_keysound
+
+                if file_index == 0xffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                if is_keysound:
+                    file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, index % 2))
+                else:
+                    file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, index % 2))
+
+    return file_entries
+
+def songlist_reader_gold(executable_filename, file_entries, songlist_offset, songlist_count):
+    with open(executable_filename, "rb") as infile:
+        infile.seek(songlist_offset)
+
+        for i in range(songlist_count):
+            infile.seek(songlist_offset + i * 0x11c, 0)
+
+            title = infile.read(0x40).decode('shift-jis').strip('\0')
+
+            if len(title) == 0:
+                break
+
+            infile.seek(0x14, 1)
+            video_idx, video_idx2 = struct.unpack("<II", infile.read(8))
+
+            infile.seek(0x58, 1)
+            charts_idx = struct.unpack("<IIIIIIIIII", infile.read(0x28)) # 28??
+            sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
+
+            if video_idx != 0xffffffff and video_idx != 0:
+                file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
+
+            if video_idx2 != 0xffffffff and video_idx2 != 0:
+                file_entries[video_idx2]['real_filename'].append("%s [1].mpg" % title)
+
+            for index, file_index in enumerate(charts_idx):
+                if file_index == 0xffffffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                #file_entries[file_index]['compression'] = decode_lz # Not LZ anymore
 
             is_keysound = False
             for index, file_index in enumerate(sounds_idx):
@@ -383,15 +445,7 @@ def parse_songlist(executable_filename, file_entries, songlist_offset, songlist_
     if songlist_offset is None or songlist_count is None:
         return file_entries
 
-    songlist_readers = {
-        #'SLPM_650.06': songlist_reader_3rd,
-        'slpm_664.26': songlist_reader_red,
-        'slpm_666.21': songlist_reader_happysky,
-        'slpm_668.28': songlist_reader_distorted,
-        'slus_212.39': songlist_reader_beatmaniaus,
-    }
-
-    songlist_reader = songlist_readers[executable_filename.lower()] if executable_filename.lower() in songlist_readers else None
+    songlist_reader = SONGLIST_READERS[executable_filename.lower()] if executable_filename.lower() in SONGLIST_READERS else None
 
     if songlist_reader is not None:
         return songlist_reader(executable_filename, file_entries, songlist_offset, songlist_count)
@@ -440,17 +494,13 @@ def rivals_reader_distorted(executable_filename, file_entries, rivals_offset, ri
     return file_entries
 
 
-def parse_rivals(executable_filename, archives, output_folder, rivals_offset, rivals_count):
-    rivals_readers = {
-        'slpm_666.21': rivals_reader_happy_sky,
-        'slpm_668.28': rivals_reader_distorted,
-    }
-
+def parse_rivals(executable_filename, archives, output_folder, rivals_offset, rivals_count, filetable_reader=None):
     file_entries = []
-    for archive in archives:
-        file_entries += parse_file(executable_filename, archive['filename'], archive['offset'], archive['entries'], output_folder, extract=False)
 
-    rivals_reader = rivals_readers[executable_filename.lower()] if executable_filename.lower() in rivals_readers else None
+    for archive in archives:
+        file_entries += parse_file(executable_filename, archive['filename'], archive['offset'], archive['entries'], output_folder, extract=False, filetable_reader=filetable_reader)
+
+    rivals_reader = RIVALS_READERS[executable_filename.lower()] if executable_filename.lower() in RIVALS_READERS else None
 
     if rivals_reader is not None:
         file_entries = rivals_reader(executable_filename, file_entries, rivals_offset, rivals_count)
@@ -489,14 +539,7 @@ def dat_filetable_reader_modern(executable_filename, filename, offset, file_coun
 
 
 def parse_dats(executable_filename, archives, output_folder):
-    dat_filetable_readers = {
-        'slpm_664.26': dat_filetable_reader_modern,
-        'slpm_666.21': dat_filetable_reader_modern,
-        'slpm_668.28': dat_filetable_reader_modern,
-        'slus_212.39': dat_filetable_reader_modern,
-    }
-
-    dat_filetable_reader = dat_filetable_readers[executable_filename.lower()] if executable_filename.lower() in dat_filetable_readers else None
+    dat_filetable_reader = DAT_FILETABLE_READERS[executable_filename.lower()] if executable_filename.lower() in DAT_FILETABLE_READERS else None
 
     if dat_filetable_reader is None:
         print("Couldn't find file table reader for", executable_filename)
@@ -713,7 +756,99 @@ game_data = [
             }
         ],
     },
+    {
+        'title': 'beatmania IIDX 14 GOLD',
+        'executable': 'SLPM_669.95',
+        'data': [
+            {
+                'output': 'bm2dx14',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': "bm2dx14a.dat",
+                        'offset': 0x11ad60,
+                        'entries': 0x248 // 12,
+                    },
+                    {
+                        'filename': "bm2dx14b.dat",
+                        'offset': 0x11afa0,
+                        'entries': 0x26ac // 12,
+                    },
+                    {
+                        'filename': "bm2dx14c.dat",
+                        'offset': 0x11d64c,
+                        'entries': 0x72c // 12,
+                    },
+                ],
+                'args': [
+                    0x156300,
+                    0x76b4 // 0x11c
+                ]
+            },
+            {
+                'output': 'romRival',
+                'handler': parse_rivals,
+                'archives': [
+                    {
+                        'filename': "romRival.dat",
+                        'offset': 0x11e300,
+                        'entries': 0x1bfd0 // 8,
+                    }
+                ],
+                'args': [
+                    0x15fc30,
+                    0x7df28 // 0x24,
+                    filetable_reader_modern
+                ]
+            },
+            {
+                'output': 'data1',
+                'handler': parse_dats,
+                'archives': [
+                    {
+                        'filename': "data1.dat",
+                        'offset': 0x118500,
+                        'entries': 0X1e80 // 16,
+                    }
+                ],
+                'args': []
+            }
+        ],
+    },
 ]
+
+FILETABLE_READERS = {
+    'slpm_650.06': filetable_reader_3rd,
+    'slpm_664.26': filetable_reader_modern,
+    'slpm_666.21': filetable_reader_modern,
+    'slpm_668.28': filetable_reader_modern,
+    'slpm_669.95': filetable_reader_modern2,
+    'slus_212.39': filetable_reader_modern,
+}
+
+SONGLIST_READERS = {
+    #'SLPM_650.06': songlist_reader_3rd,
+    'slpm_664.26': songlist_reader_red,
+    'slpm_666.21': songlist_reader_happysky,
+    'slpm_668.28': songlist_reader_distorted,
+    'slpm_669.95': songlist_reader_gold,
+    'slus_212.39': songlist_reader_beatmaniaus,
+}
+
+RIVALS_READERS = {
+    'slpm_666.21': rivals_reader_happy_sky,
+    'slpm_668.28': rivals_reader_distorted,
+    'slpm_669.95': rivals_reader_distorted,
+}
+
+DAT_FILETABLE_READERS = {
+    'slpm_664.26': dat_filetable_reader_modern,
+    'slpm_666.21': dat_filetable_reader_modern,
+    'slpm_668.28': dat_filetable_reader_modern,
+    'slpm_669.95': dat_filetable_reader_modern,
+    'slus_212.39': dat_filetable_reader_modern,
+}
+
 
 for game in game_data:
     if not os.path.exists(game['executable']):
