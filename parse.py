@@ -161,6 +161,7 @@ def filetable_reader_3rd(executable_filename, filename, offset, file_count):
 def parse_file(executable_filename, filename, offset, file_count, output_folder, extract=True):
     filetable_readers = {
         'slpm_650.06': filetable_reader_3rd,
+        'slpm_664.26': filetable_reader_modern,
         'slpm_666.21': filetable_reader_modern,
         'slus_212.39': filetable_reader_modern,
     }
@@ -185,7 +186,6 @@ def songlist_reader_happysky(executable_filename, file_entries, songlist_offset,
     with open(executable_filename, "rb") as infile:
         infile.seek(songlist_offset)
 
-        # TODO: Figure out proper offsets for data
         for i in range(songlist_count):
             infile.seek(songlist_offset + i * 0x144, 0)
 
@@ -195,13 +195,67 @@ def songlist_reader_happysky(executable_filename, file_entries, songlist_offset,
                 break
 
             infile.seek(0x14, 1)
-            video_idx = struct.unpack("<I", infile.read(4))[0]
+            video_idx, video_idx2 = struct.unpack("<II", infile.read(8))
 
-            infile.seek(0x94, 1)
+            infile.seek(0x90, 1)
             charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
             sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
 
-            file_entries[video_idx]['real_filename'].append("%s.mpg" % title)
+            if video_idx != 0xffffffff and video_idx != 0:
+                file_entries[video_idx]['real_filename'].append("%s.mpg" % title)
+
+            if video_idx2 != 0xffffffff and video_idx2 != 0:
+                file_entries[video_idx2]['real_filename'].append("%s.mpg" % title)
+
+            for index, file_index in enumerate(charts_idx):
+                if file_index == 0xffffffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['compressed'] = True
+
+            is_keysound = False
+            for index, file_index in enumerate(sounds_idx):
+                if (index % 2) == 0:
+                    is_keysound = not is_keysound
+
+                if file_index == 0xffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                if is_keysound:
+                    file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, index % 2))
+                else:
+                    file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, index % 2))
+
+    return file_entries
+
+
+def songlist_reader_red(executable_filename, file_entries, songlist_offset, songlist_count):
+    with open(executable_filename, "rb") as infile:
+        infile.seek(songlist_offset)
+
+        for i in range(songlist_count):
+            infile.seek(songlist_offset + i * 0x140, 0)
+
+            title = infile.read(0x40).decode('shift-jis').strip('\0')
+
+            if len(title) == 0:
+                break
+
+            infile.seek(0x1c, 1)
+            video_idx, video_idx2 = struct.unpack("<II", infile.read(8))
+
+            infile.seek(0x9c, 1)
+            charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
+            sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
+
+            if video_idx != 0xffffffff and video_idx != 0:
+                file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
+
+            if video_idx2 != 0xffffffff and video_idx2 != 0:
+                file_entries[video_idx2]['real_filename'].append("%s [1].mpg" % title)
 
             for index, file_index in enumerate(charts_idx):
                 if file_index == 0xffffffff or file_index == 0x00:
@@ -244,8 +298,6 @@ def songlist_reader_beatmaniaus(executable_filename, file_entries, songlist_offs
             video_idx = struct.unpack("<I", infile.read(4))[0]
 
             infile.seek(0xd0, 1)
-
-            print("offset: %08x" % infile.tell())
             charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
             sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
 
@@ -281,6 +333,8 @@ def parse_songlist(executable_filename, file_entries, songlist_offset, songlist_
         return file_entries
 
     songlist_readers = {
+        #'SLPM_650.06': songlist_reader_3rd,
+        'slpm_664.26': songlist_reader_red,
         'slpm_666.21': songlist_reader_happysky,
         'slus_212.39': songlist_reader_beatmaniaus,
     }
@@ -372,8 +426,9 @@ def dat_filetable_reader_modern(executable_filename, filename, offset, file_coun
 
 def parse_dats(executable_filename, archives, output_folder):
     dat_filetable_readers = {
-        'slus_212.39': dat_filetable_reader_modern,
+        'slpm_664.26': dat_filetable_reader_modern,
         'slpm_666.21': dat_filetable_reader_modern,
+        'slus_212.39': dat_filetable_reader_modern,
     }
 
     dat_filetable_reader = dat_filetable_readers[executable_filename.lower()] if executable_filename.lower() in dat_filetable_readers else None
@@ -480,6 +535,57 @@ game_data = [
                 'args': [
                     0xbf510,
                     0x6a14 // 0x174
+                ]
+            },
+        ],
+    },
+    {
+        'title': 'beatmania IIDX 3rd Style',
+        'executable': 'SLPM_650.06',
+        'data': [
+            {
+                'output': 'bm2dx3',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': os.path.join("DX2_3", "bm2dx3.bin"),
+                        'offset': 0x145cd0,
+                        'entries': 0x1050 // 12,
+                    }
+                ],
+                'args': []
+            },
+        ],
+    },
+    {
+        'title': 'beatmania IIDX 11th Style RED',
+        'executable': 'SLPM_664.26',
+        'data': [
+            {
+                'output': 'DATA1',
+                'handler': parse_dats,
+                'archives': [
+                    {
+                        'filename': "DATA1.DAT",
+                        'offset': 0xe83e8,
+                        'entries': 0x19c0 // 16,
+                    }
+                ],
+                'args': []
+            },
+            {
+                'output': 'DATA2',
+                'handler': parse_archives,
+                'archives': [
+                    {
+                        'filename': "DATA2.DAT",
+                        'offset': 0xee440,
+                        'entries': 0x1b40 // 8,
+                    },
+                ],
+                'args': [
+                    0x1c21f0,
+                    0x6f40 // 0x140
                 ]
             },
         ],
