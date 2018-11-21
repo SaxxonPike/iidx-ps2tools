@@ -14,6 +14,75 @@ DIFFICULTY_MAPPING = {
     7: 'DP BEGINNER', # Never used?
 }
 
+
+def decode_lz(input_data):
+    # Based on https://github.com/SaxxonPike/scharfrichter/blob/master/Scharfrichter/Compression/BemaniLZ.cs
+    BUFFER_MASK = 0x3ff
+
+    control = 0
+
+    input_data = bytearray(input_data)
+    idx = 0
+
+    buffer = bytearray([0] * 0x400)
+    buffer_idx = 0
+
+    output = bytearray([])
+
+    while True:
+        loop = False
+
+        control >>= 1
+        if control < 0x100:
+            control = input_data[idx] | 0xff00
+            idx += 1
+
+        data = input_data[idx]
+        idx += 1
+
+        if (control & 1) == 0:
+            output.append(data)
+            buffer[buffer_idx] = data
+            buffer_idx = (buffer_idx + 1) & BUFFER_MASK
+            continue
+
+        if (data & 0x80) == 0:
+            distance = input_data[idx] | ((data & 0x03) << 8)
+            idx += 1
+            length = (data >> 2) + 2
+            loop = True
+
+        elif (data & 0x40) == 0:
+            distance = (data & 0x0f) + 1
+            length = (data >> 4) - 7
+            loop = True
+
+        if loop:
+            while length >= 0:
+                length -= 1
+
+                data = buffer[(buffer_idx - distance) & BUFFER_MASK]
+                output.append(data)
+                buffer[buffer_idx] = data
+                buffer_idx = (buffer_idx + 1) & BUFFER_MASK
+
+            continue
+
+        if data == 0xff:
+            break
+
+        length = data - 0xb9
+        while length >= 0:
+            data = input_data[idx]
+            idx += 1
+            output.append(data)
+            buffer[buffer_idx] = data
+            buffer_idx = (buffer_idx + 1) & BUFFER_MASK
+            length -= 1
+
+    return output
+
+
 def get_sanitized_filename(filename, invalid_chars='<>:;\"\\/|?*'):
     for c in invalid_chars:
         filename = filename.replace(c, "_")
@@ -39,6 +108,9 @@ def extract_file(filename, table, index, output_folder, output_filename):
 
         infile.seek(entry['offset'])
         data = infile.read(entry['size'])
+
+        if entry.get('compressed', False):
+            data = decode_lz(data)
 
         open(os.path.join(output_folder, get_sanitized_filename(output_filename)), "wb").write(data)
 
@@ -137,6 +209,7 @@ def songlist_reader_happysky(executable_filename, file_entries, songlist_offset,
                     continue
 
                 file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['compressed'] = True
 
             is_keysound = False
             for index, file_index in enumerate(sounds_idx):
@@ -184,6 +257,7 @@ def songlist_reader_beatmaniaus(executable_filename, file_entries, songlist_offs
                     continue
 
                 file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['compressed'] = True
 
             is_keysound = False
             for index, file_index in enumerate(sounds_idx):
