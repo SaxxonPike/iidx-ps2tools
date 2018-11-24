@@ -1,38 +1,138 @@
+import blowfish
 import os
 import struct
 
 CHUNK_SIZE = 0x800
 
 DIFFICULTY_MAPPING = {
-    0: 'SP NORMAL',
-    1: 'SP HYPER',
-    2: 'SP ANOTHER',
-    3: 'DP NORMAL',
-    4: 'DP HYPER',
-    5: 'DP ANOTHER',
+    0: 'DP NORMAL',
+    1: 'DP HYPER',
+    2: 'DP ANOTHER',
+    3: 'SP NORMAL',
+    4: 'SP HYPER',
+    5: 'SP ANOTHER',
     6: 'SP BEGINNER',
     7: 'DP BEGINNER', # Never used?
 }
 
+
+def generate_encryption_key_gold():
+    key_parts = [
+        "FIRE FIRE", # b0 0
+        "Blind Justice", # b4 1
+        "earth-like planet", # b8 2
+        "2hot2eat", # bc 3
+        "op.31", # c0 4
+        "X-rated", # c4 5
+        "Sense 2007", # c8 6
+        "Cyber Force", # cc 7
+        "ANDROMEDA II", # d0 8
+        "heaven above", # d4 9
+    ]
+
+    key = ""
+    key += key_parts[1][8]
+    key += key_parts[0][3]
+    key += key_parts[2][8]
+    key += key_parts[3][4]
+    key += key_parts[0][1]
+    key += key_parts[4][4]
+    key += key_parts[5][0]
+    key += 'q'
+    key += key_parts[6][9]
+    key += key_parts[7][2]
+    key += 'z'
+    key += key_parts[6][8]
+    key += '9'
+    key += key_parts[8][5]
+    key += key_parts[1][9]
+    key += key_parts[9][3]
+
+    return key
+
+
+def generate_encryption_key_djtroopers():
+    key_parts = [
+        "Blue Rain", # 70 0
+        "oratio", # 74 1
+        "Digitank System", # 78 2
+        "four pieces of heaven", # 7c 3
+        "2 tribe 4 K", # 80 4
+        "end of world", # 84 5
+        "Darling my LUV", # 88 6
+        "MENDES", # 8c 7
+        "TRIP MACHINE PhoeniX", # 90 8
+        "NEW GENERATION", # 94 9
+    ]
+
+    key = ""
+    key += key_parts[0][3]
+    key += 'q'
+    key += key_parts[2][7]
+    key += key_parts[0][0]
+    key += key_parts[0][7]
+    key += key_parts[3][5]
+    key += 'x'
+    key += key_parts[4][0]
+    key += key_parts[5][7]
+    key += key_parts[6][6]
+    key += key_parts[7][1]
+    key += 'x'
+    key += key_parts[6][12]
+    key += key_parts[8][6]
+    key += key_parts[8][9]
+    key += key_parts[9][4]
+
+    return key
+
+
+def generate_encryption_key_empress():
+    key_parts = [
+        "PERFECT FULL COMBO HARD EASY", # c0 0
+        "ASSIST CLEAR PLAY", # c4 1
+        "RANDOM MIRROR", # c8 2
+        "Auto Scratch 5Keys", # cc 3
+        "DOUBLE BATTLE Win Lose", # d0 4
+        "Hi-Speed Flip", # d4 5
+        "Normal Hyper Another", # d8 6
+        "Beginner Tutorial", # dc 7
+        "ECHO REVERB EQ ONLY", # e0 8
+        "STANDARD EXPERT CLASS", # e4 9
+    ]
+
+    key = ""
+    key += key_parts[7][10]
+    key += key_parts[8][18]
+    key += key_parts[5][10]
+    key += key_parts[0][3]
+    key += key_parts[7][2]
+    key += key_parts[8][7]
+    key += 'w'
+    key += key_parts[2][4]
+    key += key_parts[5][4]
+    key += key_parts[3][8]
+    key += key_parts[8][13]
+    key += key_parts[6][3]
+    key += key_parts[9][10]
+    key += key_parts[5][7]
+    key += key_parts[1][3]
+    key += key_parts[1][11]
+
+    return key
+
+
 def decode_lz(input_data):
-    # Based on https://github.com/SaxxonPike/scharfrichter/blob/master/Scharfrichter/Compression/BemaniLZ.cs
-    BUFFER_MASK = 0x3ff
-
-    control = 0
-
+    # Based on decompression code from IIDX GOLD CS
     input_data = bytearray(input_data)
     idx = 0
 
-    buffer = bytearray([0] * 0x400)
-    buffer_idx = 0
+    output = bytearray()
 
-    output = bytearray([])
-
+    control = 0
     while True:
-        loop = False
-
         control >>= 1
-        if control < 0x100:
+
+        if (control & 0x100) == 0:
             control = input_data[idx] | 0xff00
             idx += 1
 
@@ -41,29 +141,25 @@ def decode_lz(input_data):
 
         if (control & 1) == 0:
             output.append(data)
-            buffer[buffer_idx] = data
-            buffer_idx = (buffer_idx + 1) & BUFFER_MASK
             continue
 
+        length = None
         if (data & 0x80) == 0:
-            distance = input_data[idx] | ((data & 0x03) << 8)
-            idx += 1
+            distance = ((data & 0x03) << 8) | input_data[idx]
             length = (data >> 2) + 2
-            loop = True
+            idx += 1
 
         elif (data & 0x40) == 0:
             distance = (data & 0x0f) + 1
             length = (data >> 4) - 7
-            loop = True
 
-        if loop:
-            while length >= 0:
-                length -= 1
+        if length is not None:
+            start_offset = len(output)
+            idx2 = 0
 
-                data = buffer[(buffer_idx - distance) & BUFFER_MASK]
-                output.append(data)
-                buffer[buffer_idx] = data
-                buffer_idx = (buffer_idx + 1) & BUFFER_MASK
+            while idx2 <= length:
+                output.append(output[(start_offset - distance) + idx2])
+                idx2 += 1
 
             continue
 
@@ -72,14 +168,19 @@ def decode_lz(input_data):
 
         length = data - 0xb9
         while length >= 0:
-            data = input_data[idx]
+            output.append(input_data[idx])
             idx += 1
-            output.append(data)
-            buffer[buffer_idx] = data
-            buffer_idx = (buffer_idx + 1) & BUFFER_MASK
             length -= 1
 
     return output
+
+
+def decrypt_blowfish(data, key):
+    if len(data) % 8 == 0:
+        data += bytearray([0] * 8)
+
+    cipher = blowfish.Cipher(key.encode('ascii'), byte_order="little")
+    return bytearray(b"".join(cipher.decrypt_cbc_cts(data, bytearray([0] * 8))))
 
 
 def get_sanitized_filename(filename, invalid_chars='<>:;\"\\/|?*'):
@@ -107,6 +208,9 @@ def extract_file(filename, table, index, output_folder, output_filename):
 
         infile.seek(entry['offset'])
         data = infile.read(entry['size'])
+
+        if entry.get('encryption', None) is not None:
+            data = decrypt_blowfish(data, entry['encryption'])
 
         if entry.get('compression', None) is not None:
             data = entry['compression'](data)
@@ -446,7 +550,8 @@ def songlist_reader_gold(executable_filename, file_entries, songlist_offset, son
                     continue
 
                 file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
-                #file_entries[file_index]['compression'] = decode_lz # Not LZ anymore
+                file_entries[file_index]['encryption'] = generate_encryption_key_gold()
+                file_entries[file_index]['compression'] = decode_lz
 
             is_keysound = False
             for index, file_index in enumerate(sounds_idx):
@@ -463,6 +568,7 @@ def songlist_reader_gold(executable_filename, file_entries, songlist_offset, son
                     file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, index % 2))
 
     return file_entries
+
 
 def songlist_reader_djtroopers(executable_filename, file_entries, songlist_offset, songlist_count):
     with open(executable_filename, "rb") as infile:
@@ -495,7 +601,59 @@ def songlist_reader_djtroopers(executable_filename, file_entries, songlist_offse
                     continue
 
                 file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
-                #file_entries[file_index]['compression'] = decode_lz # Not LZ anymore
+                file_entries[file_index]['encryption'] = generate_encryption_key_djtroopers()
+                file_entries[file_index]['compression'] = decode_lz
+
+            is_keysound = False
+            for index, file_index in enumerate(sounds_idx):
+                if (index % 2) == 0:
+                    is_keysound = not is_keysound
+
+                if file_index == 0xffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                if is_keysound:
+                    file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, index % 2))
+                else:
+                    file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, index % 2))
+
+    return file_entries
+
+
+def songlist_reader_empress(executable_filename, file_entries, songlist_offset, songlist_count):
+    with open(executable_filename, "rb") as infile:
+        infile.seek(songlist_offset)
+
+        for i in range(songlist_count):
+            infile.seek(songlist_offset + i * 0x134, 0)
+
+            title = infile.read(0x40).decode('shift-jis').strip('\0')
+
+            if len(title) == 0:
+                title = "%d" % i
+
+            infile.seek(0x18, 1)
+            video_idx, video_idx2 = struct.unpack("<II", infile.read(8))
+
+            infile.seek(0x60, 1)
+            charts_idx = struct.unpack("<IIIIIIIIII", infile.read(0x28)) # 28??
+            sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
+
+            if video_idx != 0xffffffff and video_idx != 0:
+                file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
+
+            if video_idx2 != 0xffffffff and video_idx2 != 0:
+                file_entries[video_idx2]['real_filename'].append("%s [1].mpg" % title)
+
+            for index, file_index in enumerate(charts_idx):
+                if file_index == 0xffffffff or file_index == 0x00:
+                    # Invalid
+                    continue
+
+                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['encryption'] = generate_encryption_key_empress()
+                file_entries[file_index]['compression'] = decode_lz
 
             is_keysound = False
             for index, file_index in enumerate(sounds_idx):
@@ -541,7 +699,7 @@ def songlist_reader_beatmaniaus(executable_filename, file_entries, songlist_offs
                     continue
 
                 file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
-                file_entries[file_index]['compressed'] = True
+                file_entries[file_index]['compression'] = decode_lz
 
             is_keysound = False
             for index, file_index in enumerate(sounds_idx):
@@ -1089,7 +1247,7 @@ game_data = [
                 ],
                 'args': [
                     0x17e0f0,
-                    0x7850 // 0x134
+                    0x7850 // 0x134,
                 ]
             },
             {
@@ -1336,8 +1494,8 @@ SONGLIST_READERS = {
     'slpm_668.28': songlist_reader_distorted,
     'slpm_669.95': songlist_reader_gold,
     'slpm_551.17': songlist_reader_djtroopers,
-    'slpm_552.21': songlist_reader_djtroopers,
-    'slpm_552.22': songlist_reader_djtroopers,
+    'slpm_552.21': songlist_reader_empress,
+    'slpm_552.22': songlist_reader_empress,
     'slpm_661.80': songlist_reader_10,
     'slpm_659.46': songlist_reader_10,
     'slus_212.39': songlist_reader_beatmaniaus,
@@ -1363,6 +1521,13 @@ DAT_FILETABLE_READERS = {
     'slpm_661.80': dat_filetable_reader_modern,
     'slpm_659.46': dat_filetable_reader_modern,
     'slus_212.39': dat_filetable_reader_modern,
+}
+
+ENCRYPTION_KEYS = {
+    'slpm_669.95': generate_encryption_key_gold(),
+    'slpm_551.17': generate_encryption_key_djtroopers(),
+    'slpm_552.21': generate_encryption_key_empress(),
+    'slpm_552.22': generate_encryption_key_empress(),
 }
 
 
