@@ -1,16 +1,233 @@
-import blowfish
+import ctypes
 import os
 import struct
+
+from PIL import Image, ImageOps
+import blowfish
+
+overlay_offsets = {
+    'slpm_657.68': { # 8th
+        'base_offset': 0xfff80,
+
+        'palette_table': 0x124a20,
+        'animation_table': 0x124ba0,
+        'animation_data_table': 0x127480,
+        'tile_table': 0x136f10,
+        'animation_parts_table': 0x191bd0,
+    },
+    'slpm_655.93': { # 7th
+        'base_offset': 0xfff80,
+
+        'palette_table': 0xf66b0,
+        'animation_table': 0xf68d0,
+        'animation_data_table': 0xfa9a0,
+        'tile_table': 0x111610,
+        'animation_parts_table': 0x1aec50,
+    },
+    'slpm_651.56': { # 6th
+        'base_offset': 0xff000,
+
+        'palette_table': 0x171138,
+        'animation_table': 0xd1dc4,
+        'animation_data_table': 0xd63a8,
+        'tile_table': 0xeb3d8,
+        'animation_parts_table': 0x15e298,
+    },
+    'slpm_650.49': { # 5th
+        'base_offset': 0xff000,
+
+        'palette_table': 0x174828,
+        'animation_table': 0xb44a8,
+        'animation_data_table': 0xb9608,
+        'tile_table': 0xd2c70,
+        'animation_parts_table': 0x163190,
+    },
+    'slpm_650.26': { # 4th
+        'base_offset': 0xff000,
+
+        'palette_table': 0x12b4f0,
+        'animation_table': 0x8e108,
+        'animation_data_table': 0x91640,
+        'tile_table': 0xa6a80,
+        'animation_parts_table': 0x11ec50,
+    },
+    'slpm_650.06': { # 3rd
+        'base_offset': 0xff000,
+
+        'palette_table': 0x13d128,
+        'animation_table': 0x7ac70,
+        'animation_data_table': 0x7df48,
+        'tile_table': 0x94ff8,
+        'animation_parts_table': 0x130ac8,
+    },
+}
+
+def read_frames_from_ifs(filename):
+    data = open(filename, "rb").read()
+
+    file_offsets = []
+
+    img_start_idx = struct.unpack("<I", data[0x04:0x08])[0]
+
+    data_idx = 0x0c
+    while True:
+        file_offset = struct.unpack("<I", data[data_idx:data_idx + 4])[0]
+        data_idx += 4
+
+        if file_offset == 0xffffffff:
+            break
+
+        file_offsets.append(file_offset * 4)
+
+    overlay_images = {}
+    for offset in file_offsets:
+        raw_data = bytes(decode_lz(data[offset+4:]))
+
+        new_raw_data = bytearray()
+
+        for b in raw_data:
+            new_raw_data.append(b & 0x0f)
+            new_raw_data.append((b & 0xf0) >> 4)
+
+        raw_data = bytes(new_raw_data)
+        overlay_images[img_start_idx] = Image.frombytes('P', (128, 128), raw_data)
+
+        img_start_idx += 1
+
+    return overlay_images
+
+def extract_overlay(exe_filename, ifs_filename, palette_idx, overlay_id, output_filename):
+    if exe_filename.lower() not in overlay_offsets:
+        return
+
+    overlay_exe_offsets = overlay_offsets[exe_filename.lower()]
+
+    exe = bytearray(open(exe_filename, "rb").read())
+
+    palette_offset = struct.unpack("<I", exe[overlay_exe_offsets['palette_table']+(palette_idx*4):overlay_exe_offsets['palette_table']+(palette_idx*4)+4])[0] - overlay_exe_offsets['base_offset']
+    palette_data = decode_lz(exe[palette_offset:])
+
+    # Create palettes
+    palettes = []
+    for i in range(len(palette_data) // 2 // 16):
+        cur_palette = []
+
+        for j in range(16):
+            c = struct.unpack("<H", palette_data[(i*16*2) + (j*2):(i*16*2) + (j*2)+2])[0]
+            r = ((c & 0x7c00) >> 10) << 3
+            g = ((c & 0x3e0) >> 5) << 3
+            b = (c & 0x1F) << 3
+            cur_palette.append((r, g, b))
+
+        palettes.append(cur_palette)
+
+    animation_id, frame_count = struct.unpack("<HH", exe[overlay_exe_offsets['animation_table']+(overlay_id * 4):overlay_exe_offsets['animation_table']+(overlay_id * 4)+4])
+    animation_parts_data = exe[overlay_exe_offsets['animation_data_table']+(animation_id*10):overlay_exe_offsets['animation_data_table']+(animation_id*10)+((frame_count)*10)]
+
+    animation_parts = []
+    for i in range(len(animation_parts_data) // 10):
+        idx, anim_len, _, w, h, unk = struct.unpack("<HBBHHH", animation_parts_data[i * 10:(i * 10) + 10])
+
+        if anim_len == 0xff:
+            continue
+
+        animation_parts.append((idx, anim_len))
+
+    sprites = []
+
+    for idx, anim_len in animation_parts:
+        cur_frame = []
+
+        for i2 in range(1):
+            idx2, size = struct.unpack("<HH", exe[overlay_exe_offsets['animation_parts_table'] + ((idx + i2) * 4):overlay_exe_offsets['animation_parts_table'] + ((idx + i2) * 4) + 4])
+
+            for i in range(size):
+                t = 0
+                dst_x, dst_y, src_w, src_h, img_idx, src_x, src_y, palette, rotation, unk2 = struct.unpack("<HHHHHBBBBH", exe[overlay_exe_offsets['tile_table'] - t + ((idx2 + i) * 16):overlay_exe_offsets['tile_table'] - t + ((idx2 + i) * 16) + 16])
+
+                dst_x = ctypes.c_short(dst_x).value
+                dst_y = ctypes.c_short(dst_y).value
+                src_w = ctypes.c_short(src_w).value
+                src_h = ctypes.c_short(src_h).value
+                src_x = ctypes.c_short(src_x).value
+                src_y = ctypes.c_short(src_y).value
+
+                cur_frame.append({
+                    'dst_x': dst_x,
+                    'dst_y': dst_y,
+                    'src_w': src_w,
+                    'src_h': src_h,
+                    'img_idx': img_idx,
+                    'src_x': src_x,
+                    'src_y': src_y,
+                    'palette': palette,
+                    'rotation': rotation,
+                    'unk2': unk2,
+                })
+
+        sprites.append(cur_frame)
+
+    overlay_images = read_frames_from_ifs(ifs_filename)
+
+    frames = []
+    idx = 0
+    for sprite_parts in sprites:
+        output = Image.new('RGBA', (512, 512))
+
+        for sprite in sprite_parts:
+            crop_region = (sprite['src_x'], sprite['src_y'], sprite['src_x'] + sprite['src_w'], sprite['src_y'] + sprite['src_h'])
+            dst_region = (sprite['dst_x'], sprite['dst_y'], sprite['dst_x'] + sprite['src_w'], sprite['dst_y'] + sprite['src_h'])
+            src_img = overlay_images[sprite['img_idx']].crop(crop_region)
+
+            palette = []
+
+            trans_color = palettes[sprite['palette']][0]
+
+            for color in palettes[sprite['palette']]:
+                palette.append(color[2])
+                palette.append(color[1])
+                palette.append(color[0])
+
+            src_img.putpalette(palette)
+
+            src_img = src_img.convert("RGBA")
+            datas = src_img.getdata()
+
+            newData = []
+            for item in datas:
+                if item[0] == trans_color[2] and item[1] == trans_color[1] and item[2] == trans_color[0]:
+                    newData.append((255, 255, 255, 0))
+                else:
+                    newData.append(item)
+
+            src_img.putdata(newData)
+
+            if (sprite['rotation'] & 0x01) == 1:
+                src_img = ImageOps.flip(src_img)
+
+            if (sprite['rotation'] & 0x02) == 2:
+                src_img = ImageOps.mirror(src_img)
+
+            if sprite['rotation'] not in [0, 1, 2, 3]:
+                print("Found known rotation flag:", sprite['rotation'])
+
+            output.paste(src_img, dst_region, src_img.convert("RGBA"))
+
+        frames.append(output.crop((171, 0, 469, 208)).copy())
+
+    if len(frames) > 0:
+        frames[0].save('{}.gif'.format(output_filename), save_all=True, append_images=frames[1:], loop=0xffff, disposal=2)
+
 
 CHUNK_SIZE = 0x800
 
 DIFFICULTY_MAPPING = {
-    0: 'DP NORMAL',
+    0: 'SP HYPER',
     1: 'DP HYPER',
-    2: 'DP ANOTHER',
-    3: 'SP NORMAL',
-    4: 'SP HYPER',
-    5: 'SP ANOTHER',
+    2: 'SP ANOTHER',
+    3: 'DP ANOTHER',
+    4: 'SP NORMAL',
+    5: 'DP NORMAL',
     6: 'SP BEGINNER',
     7: 'DP BEGINNER', # Never used?
 }
@@ -212,6 +429,8 @@ def get_sanitized_filename(filename, invalid_chars='<>:;\"\\/|?*'):
 def extract_file(filename, table, index, output_folder, output_filename):
     entry = table[index] if index < len(table) else None
 
+    gif_output_filename = output_filename.replace(".if", "")
+
     if entry is None:
         return
 
@@ -230,8 +449,12 @@ def extract_file(filename, table, index, output_folder, output_filename):
         if entry.get('compression', None) is not None:
             data = entry['compression'](data)
 
-        open(os.path.join(output_folder, get_sanitized_filename(output_filename)), "wb").write(data)
+        output_filename = os.path.join(output_folder, get_sanitized_filename(output_filename))
+        open(output_filename, "wb").write(data)
 
+        if entry.get('overlays', None) is not None:
+            for overlay_idx in entry['overlays']['indexes']:
+                extract_overlay(entry['overlays']['exe'], output_filename, entry['overlays']['palette'], overlay_idx, get_sanitized_filename("%s [%04x]" % (gif_output_filename, overlay_idx)))
 
 def filetable_reader_modern(executable_filename, filename, offset, file_count):
     file_entries = []
@@ -367,7 +590,7 @@ def songlist_reader_happysky(executable_filename, file_entries, songlist_offset,
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['compression'] = decode_lz
 
             sound_pairs = [
@@ -390,9 +613,9 @@ def songlist_reader_happysky(executable_filename, file_entries, songlist_offset,
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -427,7 +650,7 @@ def songlist_reader_9th(executable_filename, file_entries, songlist_offset, song
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['compression'] = decode_lz
 
             sound_pairs = [
@@ -450,9 +673,9 @@ def songlist_reader_9th(executable_filename, file_entries, songlist_offset, song
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -488,7 +711,7 @@ def songlist_reader_red(executable_filename, file_entries, songlist_offset, song
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['compression'] = decode_lz
 
             sound_pairs = [
@@ -511,9 +734,9 @@ def songlist_reader_red(executable_filename, file_entries, songlist_offset, song
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -549,7 +772,7 @@ def songlist_reader_distorted(executable_filename, file_entries, songlist_offset
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['compression'] = decode_lz
 
             sound_pairs = [
@@ -572,9 +795,9 @@ def songlist_reader_distorted(executable_filename, file_entries, songlist_offset
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -609,7 +832,7 @@ def songlist_reader_gold(executable_filename, file_entries, songlist_offset, son
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['encryption'] = generate_encryption_key_gold()
                 file_entries[file_index]['compression'] = decode_lz
 
@@ -633,9 +856,9 @@ def songlist_reader_gold(executable_filename, file_entries, songlist_offset, son
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -653,24 +876,25 @@ def songlist_reader_djtroopers(executable_filename, file_entries, songlist_offse
                 title = "%d" % i
 
             infile.seek(0x18, 1)
-            video_idx, video_idx2 = struct.unpack("<II", infile.read(8))
+            videos_idx = struct.unpack("<II", infile.read(8))
 
             infile.seek(0x60, 1)
             charts_idx = struct.unpack("<IIIIIIIIII", infile.read(0x28)) # 28??
             sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
 
-            if video_idx != 0xffffffff and video_idx != 0:
-                file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
+            for index, file_index in enumerate(videos_idx):
+                if file_index == 0xffff or file_index == 0x00:
+                    # Invalid
+                    continue
 
-            if video_idx2 != 0xffffffff and video_idx2 != 0:
-                file_entries[video_idx2]['real_filename'].append("%s [1].mpg" % title)
+                file_entries[file_index]['real_filename'].append("%s [%d].mpg" % (title, index))
 
             for index, file_index in enumerate(charts_idx):
                 if file_index == 0xffffffff or file_index == 0x00:
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['encryption'] = generate_encryption_key_djtroopers()
                 file_entries[file_index]['compression'] = decode_lz
 
@@ -694,9 +918,9 @@ def songlist_reader_djtroopers(executable_filename, file_entries, songlist_offse
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -714,24 +938,25 @@ def songlist_reader_empress(executable_filename, file_entries, songlist_offset, 
                 title = "%d" % i
 
             infile.seek(0x18, 1)
-            video_idx, video_idx2 = struct.unpack("<II", infile.read(8))
+            videos_idx = struct.unpack("<II", infile.read(8))
 
             infile.seek(0x60, 1)
             charts_idx = struct.unpack("<IIIIIIIIII", infile.read(0x28)) # 28??
             sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
 
-            if video_idx != 0xffffffff and video_idx != 0:
-                file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
+            for index, file_index in enumerate(videos_idx):
+                if file_index == 0xffff or file_index == 0x00:
+                    # Invalid
+                    continue
 
-            if video_idx2 != 0xffffffff and video_idx2 != 0:
-                file_entries[video_idx2]['real_filename'].append("%s [1].mpg" % title)
+                file_entries[file_index]['real_filename'].append("%s [%d].mpg" % (title, index))
 
             for index, file_index in enumerate(charts_idx):
                 if file_index == 0xffffffff or file_index == 0x00:
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['encryption'] = generate_encryption_key_empress()
                 file_entries[file_index]['compression'] = decode_lz
 
@@ -755,9 +980,9 @@ def songlist_reader_empress(executable_filename, file_entries, songlist_offset, 
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -788,7 +1013,7 @@ def songlist_reader_beatmaniaus(executable_filename, file_entries, songlist_offs
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['compression'] = decode_lz
 
             sound_pairs = [
@@ -811,9 +1036,9 @@ def songlist_reader_beatmaniaus(executable_filename, file_entries, songlist_offs
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -836,7 +1061,18 @@ def songlist_reader_3rd(executable_filename, file_entries, songlist_offset, song
             video_idx = struct.unpack("<H", infile.read(2))[0]
             video_idx2 = video_idx + 1
 
-            infile.seek(0x48, 1)
+            infile.seek(0x1c, 1)
+            overlay_palette = struct.unpack("<H", infile.read(2))[0]
+
+            infile.seek(0x0a, 1)
+            overlay_idxs = []
+            for i in range(0x1e // 6):
+                overlay_type, overlay_idx, unk = struct.unpack("<HHH", infile.read(6))
+
+                if overlay_type != 0:
+                    overlay_idxs.append(overlay_idx)
+
+            infile.seek(0x02, 1)
 
             charts_idx = struct.unpack("<IIIIII", infile.read(0x18))
             sounds_idx = struct.unpack("<HH", infile.read(0x04))
@@ -848,14 +1084,20 @@ def songlist_reader_3rd(executable_filename, file_entries, songlist_offset, song
                 file_entries[video_idx+1]['real_filename'].append("%s [1].mpg" % title)
 
             if overlay_idx not in [0xffff, 0x00]:
-                file_entries[overlay_idx]['real_filename'].append("%s.if" % title)
+                overlay_filename = "%s.if" % title
+                file_entries[overlay_idx]['real_filename'].append(overlay_filename)
+                file_entries[overlay_idx]['overlays'] = {
+                    'exe': executable_filename,
+                    'palette': overlay_palette,
+                    'indexes': overlay_idxs
+                }
 
             for index, file_index in enumerate(charts_idx):
                 if file_index == 0xffffffff or file_index == 0x00:
                     # Invalid
                     continue
 
-                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index)))))
+                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index)))))
 
                 print("Extracting", output_filename)
 
@@ -866,14 +1108,14 @@ def songlist_reader_3rd(executable_filename, file_entries, songlist_offset, song
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, index))
+                file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, index))
 
             for index, file_index in enumerate(bgm_idx):
                 if file_index == 0xffff or file_index == 0x00:
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, index))
+                file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, index))
 
     return file_entries
 
@@ -896,7 +1138,18 @@ def songlist_reader_4th(executable_filename, file_entries, songlist_offset, song
             video_idx = struct.unpack("<H", infile.read(2))[0]
             video_idx2 = video_idx + 1
 
-            infile.seek(0x48, 1)
+            infile.seek(0x1c, 1)
+            overlay_palette = struct.unpack("<H", infile.read(2))[0]
+
+            infile.seek(0x0a, 1)
+            overlay_idxs = []
+            for i in range(0x1e // 6):
+                overlay_type, overlay_idx, unk = struct.unpack("<HHH", infile.read(6))
+
+                if overlay_type != 0:
+                    overlay_idxs.append(overlay_idx)
+
+            infile.seek(0x02, 1)
 
             charts_idx = struct.unpack("<IIIIII", infile.read(0x18))
             sounds_idx_1 = struct.unpack("<HH", infile.read(0x04))
@@ -910,14 +1163,20 @@ def songlist_reader_4th(executable_filename, file_entries, songlist_offset, song
                 file_entries[video_idx+1]['real_filename'].append("%s [1].mpg" % title)
 
             if overlay_idx not in [0xffff, 0x00]:
-                file_entries[overlay_idx]['real_filename'].append("%s.if" % title)
+                overlay_filename = "%s.if" % title
+                file_entries[overlay_idx]['real_filename'].append(overlay_filename)
+                file_entries[overlay_idx]['overlays'] = {
+                    'exe': executable_filename,
+                    'palette': overlay_palette,
+                    'indexes': overlay_idxs
+                }
 
             for index, file_index in enumerate(charts_idx):
                 if file_index == 0xffffffff or file_index == 0x00:
                     # Invalid
                     continue
 
-                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index)))))
+                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index)))))
 
                 print("Extracting", output_filename)
 
@@ -928,21 +1187,21 @@ def songlist_reader_4th(executable_filename, file_entries, songlist_offset, song
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [0-%d].ksnd" % (title, index))
+                file_entries[file_index]['real_filename'].append("%s [0-%d].wvb" % (title, index))
 
             for index, file_index in enumerate(bgms_idx_1):
                 if file_index == 0xffff or file_index == 0x00:
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [0-%d].bsnd" % (title, index))
+                file_entries[file_index]['real_filename'].append("%s [0-%d].pcm" % (title, index))
 
             for index, file_index in enumerate(sounds_idx_2):
                 if file_index == 0xffff or file_index == 0x00:
                     # Invalid
                     continue
 
-                file_entries[file_index]['real_filename'].append("%s [1-%d].ksnd" % (title, index))
+                file_entries[file_index]['real_filename'].append("%s [1-%d].wvb" % (title, index))
 
             for index, file_index in enumerate(bgms_idx_2):
                 if file_index == 0xffff or file_index == 0x00:
@@ -951,7 +1210,7 @@ def songlist_reader_4th(executable_filename, file_entries, songlist_offset, song
 
                 print("%08x" % infile.tell(), file_index, len(file_entries))
 
-                file_entries[file_index]['real_filename'].append("%s [1-%d].bsnd" % (title, index))
+                file_entries[file_index]['real_filename'].append("%s [1-%d].pcm" % (title, index))
 
     return file_entries
 
@@ -974,7 +1233,18 @@ def songlist_reader_5th(executable_filename, file_entries, songlist_offset, song
             video_idx = struct.unpack("<H", infile.read(2))[0]
             video_idx2 = video_idx + 1
 
-            infile.seek(0x48, 1)
+            infile.seek(0x18, 1)
+            overlay_palette = struct.unpack("<H", infile.read(2))[0]
+
+            infile.seek(0x0e, 1)
+            overlay_idxs = []
+            for i in range(0x1e // 6):
+                overlay_type, overlay_idx, unk = struct.unpack("<HHH", infile.read(6))
+
+                if overlay_type != 0:
+                    overlay_idxs.append(overlay_idx)
+
+            infile.seek(0x02, 1)
 
             charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
             sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
@@ -985,14 +1255,20 @@ def songlist_reader_5th(executable_filename, file_entries, songlist_offset, song
                 file_entries[video_idx+1]['real_filename'].append("%s [1].mpg" % title)
 
             if overlay_idx not in [0xffff, 0x00]:
-                file_entries[overlay_idx]['real_filename'].append("%s.if" % title)
+                overlay_filename = "%s.if" % title
+                file_entries[overlay_idx]['real_filename'].append(overlay_filename)
+                file_entries[overlay_idx]['overlays'] = {
+                    'exe': executable_filename,
+                    'palette': overlay_palette,
+                    'indexes': overlay_idxs
+                }
 
             for index, file_index in enumerate(charts_idx):
                 if file_index == 0xffffffff or file_index == 0x00:
                     # Invalid
                     continue
 
-                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index)))))
+                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index)))))
 
                 print("Extracting", output_filename)
 
@@ -1018,9 +1294,9 @@ def songlist_reader_5th(executable_filename, file_entries, songlist_offset, song
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -1045,10 +1321,31 @@ def songlist_reader_6th(executable_filename, file_entries, songlist_offset, song
             infile.seek(0x0c, 1)
             video_idx = struct.unpack("<H", infile.read(2))[0]
 
-            infile.seek(0x2e, 1)
+            infile.seek(0x0a, 1)
+            overlay_palette = struct.unpack("<H", infile.read(2))[0]
+
+            infile.seek(0x0c, 1)
+            overlay_idxs = []
+            for i in range(0x16 // 4):
+                overlay_type, overlay_idx = struct.unpack("<HH", infile.read(4))
+
+                if overlay_type != 0:
+                    overlay_idxs.append(overlay_idx)
+
+            infile.seek(0x02, 1)
 
             charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
             sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
+            overlay_idx = struct.unpack("<H", infile.read(0x02))[0]
+
+            if overlay_idx not in [0xffff, 0x00]:
+                overlay_filename = "%s.if" % title
+                file_entries[overlay_idx]['real_filename'].append(overlay_filename)
+                file_entries[overlay_idx]['overlays'] = {
+                    'exe': executable_filename,
+                    'palette': overlay_palette,
+                    'indexes': overlay_idxs
+                }
 
             if video_idx not in [0xffff, 0x00]:
                 file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
@@ -1061,7 +1358,7 @@ def songlist_reader_6th(executable_filename, file_entries, songlist_offset, song
                     # Invalid
                     continue
 
-                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index)))))
+                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index)))))
 
                 print("Extracting", output_filename)
 
@@ -1087,9 +1384,9 @@ def songlist_reader_6th(executable_filename, file_entries, songlist_offset, song
                         continue
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -1117,10 +1414,21 @@ def songlist_reader_7th(executable_filename, file_entries, songlist_offset, song
             if video_idx == 0xffff:
                 video_idx = video_idx2
 
-            infile.seek(0x16, 1)
-            video_type = struct.unpack("<H", infile.read(2))[0]
+            infile.seek(0x0a, 1)
+            overlay_palette = struct.unpack("<H", infile.read(2))[0]
 
-            infile.seek(0x16, 1)
+            infile.seek(0x0c, 1)
+
+            overlay_idxs = []
+
+            for i in range(0x16 // 4):
+                overlay_type, overlay_idx = struct.unpack("<HH", infile.read(4))
+
+                if overlay_type != 0:
+                    overlay_idxs.append(overlay_idx)
+
+            infile.seek(2, 1)
+
             charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
             sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
             overlay_idx = struct.unpack("<H", infile.read(0x02))[0]
@@ -1135,7 +1443,13 @@ def songlist_reader_7th(executable_filename, file_entries, songlist_offset, song
                 if overlay_idx >= 138:
                     overlay_idx += 138
 
-                file_entries[overlay_idx]['real_filename'].append("%s.if" % title)
+                overlay_filename = "%s.if" % title
+                file_entries[overlay_idx]['real_filename'].append(overlay_filename)
+                file_entries[overlay_idx]['overlays'] = {
+                    'exe': executable_filename,
+                    'palette': overlay_palette,
+                    'indexes': overlay_idxs
+                }
 
             for index, file_index in enumerate(charts_idx):
                 if file_index == 0xffffffff or file_index == 0x00:
@@ -1143,7 +1457,7 @@ def songlist_reader_7th(executable_filename, file_entries, songlist_offset, song
                     continue
 
                 file_index = (file_index & 0x0fffffff) + 138
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['compression'] = decode_lz
 
             sound_pairs = [
@@ -1169,9 +1483,9 @@ def songlist_reader_7th(executable_filename, file_entries, songlist_offset, song
                         file_index += 138
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -1193,7 +1507,21 @@ def songlist_reader_8th(executable_filename, file_entries, songlist_offset, song
             infile.seek(0x0c, 1)
             videos_idx = struct.unpack("<HH", infile.read(4))
 
-            infile.seek(0x3c, 1)
+            infile.seek(0x18, 1)
+            overlay_palette = struct.unpack("<H", infile.read(2))[0]
+
+            infile.seek(0xc, 1)
+
+            overlay_idxs = []
+
+            for i in range(0x16 // 4):
+                overlay_type, overlay_idx = struct.unpack("<HH", infile.read(4))
+
+                if overlay_type != 0:
+                    overlay_idxs.append(overlay_idx)
+
+            infile.seek(2, 1)
+
             charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
             sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
             overlay_idx = struct.unpack("<H", infile.read(0x02))[0]
@@ -1212,7 +1540,13 @@ def songlist_reader_8th(executable_filename, file_entries, songlist_offset, song
                 if overlay_idx >= 116:
                     overlay_idx += 116
 
-                file_entries[overlay_idx]['real_filename'].append("%s.if" % title)
+                overlay_filename = "%s.if" % title
+                file_entries[overlay_idx]['real_filename'].append(overlay_filename)
+                file_entries[overlay_idx]['overlays'] = {
+                    'exe': executable_filename,
+                    'palette': overlay_palette,
+                    'indexes': overlay_idxs
+                }
 
             for index, file_index in enumerate(charts_idx):
                 if file_index == 0xffffffff or file_index == 0x00:
@@ -1220,7 +1554,7 @@ def songlist_reader_8th(executable_filename, file_entries, songlist_offset, song
                     continue
 
                 file_index = (file_index & 0x0fffffff) + 116
-                file_entries[file_index]['real_filename'].append("%s [%s].1" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
+                file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, DIFFICULTY_MAPPING.get(index, str(index))))
                 file_entries[file_index]['compression'] = decode_lz
 
             sound_pairs = [
@@ -1246,9 +1580,9 @@ def songlist_reader_8th(executable_filename, file_entries, songlist_offset, song
                         file_index += 116
 
                     if is_keysound:
-                        file_entries[file_index]['real_filename'].append("%s [%d].ksnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
                     else:
-                        file_entries[file_index]['real_filename'].append("%s [%d].bsnd" % (title, pair_index))
+                        file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
     return file_entries
 
@@ -2066,8 +2400,8 @@ SONGLIST_READERS = {
     'slpm_668.28': songlist_reader_distorted,
     'slpm_669.95': songlist_reader_gold,
     'slpm_551.17': songlist_reader_djtroopers,
-    'slpm_552.21': songlist_reader_djtroopers,
-    'slpm_552.22': songlist_reader_djtroopers,
+    'slpm_552.21': songlist_reader_empress,
+    'slpm_552.22': songlist_reader_empress,
     'slus_212.39': songlist_reader_beatmaniaus,
 }
 
