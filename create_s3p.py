@@ -13,18 +13,13 @@ def get_filesize(filename):
         infile.seek(0, 2)
         return infile.tell()
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input', help='Input folder', required=True)
-    parser.add_argument('--output', help='Output file', required=True)
-    args = parser.parse_args()
-
-    with open(args.output, "wb") as outfile:
+def create_s3p(input, output):
+    with open(output, "wb") as outfile:
         outfile.write(b"S3P0")
 
         files = []
         for ext in ['*.mp3', '*.wav', '*.ogg', '*.wma']:
-            files += sorted(glob.glob(os.path.join(args.input, ext)))
+            files += sorted(glob.glob(os.path.join(input, ext)))
 
         tempfiles = []
         for i in range(len(files)):
@@ -62,3 +57,11 @@ if __name__ == "__main__":
 
         for path in tempfiles:
             os.unlink(path)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', help='Input folder', required=True)
+    parser.add_argument('--output', help='Output file', required=True)
+    args = parser.parse_args()
+
+    create_s3p(args.input, args.output)
