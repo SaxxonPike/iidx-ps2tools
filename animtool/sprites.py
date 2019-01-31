@@ -93,9 +93,7 @@ def extract_sprite_images(filenames):
         for idx, filename in enumerate(filenames[1:]):
             print("Decoding texture %d..." % idx)
             width, height = struct.unpack("<HH", infile.read(4))
-            print("Test 1")
             data = ps2textures.decode_ps2_texture(filename, width, height, SPRITE_BPP)
-            print("Test 2")
             data_bytes = bytes(data)
             del data
             sprite_images.append(Image.frombytes('RGBA', (width, height), data_bytes))

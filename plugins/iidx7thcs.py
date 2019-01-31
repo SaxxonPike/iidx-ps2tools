@@ -77,6 +77,7 @@ class Iidx7thCsHandler:
                         continue
 
                     file_index = (file_index & 0x0fffffff) + 138
+                    print("file index: %d" % file_index)
                     file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, common.OLD_DIFFICULTY_MAPPING.get(index, str(index))))
                     file_entries[file_index]['compression'] = common.decode_lz
 
@@ -113,9 +114,9 @@ class Iidx7thCsHandler:
     @staticmethod
     def extract(exe_filename, input_folder, output_folder):
         main_archive_file_entries = []
-        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_7", "BM2DX7A.BIN"), 0x1b6a50, 0xa10 // 8, len(main_archive_file_entries))
-        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_7", "BM2DX7B.BIN"), 0x1b7460, 0x8a0 // 8, len(main_archive_file_entries))
-        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_7", "BM2DX7C.BIN"), 0x1b9a30, 0x2bc0 // 8, len(main_archive_file_entries))
+        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_7", "BM2DX7B.BIN"), 0x1b7460, 0x8a0 // 16, len(main_archive_file_entries))
+        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_7", "BM2DX7C.BIN"), 0x1b9a30, 0x2bc0 // 16, len(main_archive_file_entries))
+        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_7", "BM2DX7A.BIN"), 0x1b6a50, 0xa10 // 16, len(main_archive_file_entries))
 
         Iidx7thCsHandler.read_songlist(exe_filename, 0x1c1af0, 0x3840 // 0xa0, main_archive_file_entries)
 

@@ -83,6 +83,7 @@ def decode_lz(input_data):
 
     return output
 
+
 def decrypt_blowfish(data, key):
     if len(data) % 8 == 0:
         data += bytearray([0] * 8)
@@ -134,13 +135,13 @@ def extract_file(filename, entry, output_filename):
             outfile.write(data)
 
 
-def extract_files(file_entries, output_folder):
+def extract_files(file_entries, output_folder, base_file_id=0):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    for entry in file_entries:
+    for entry in file_entries[::]:
         if not entry['real_filename']:
-            entry['real_filename'].append("file_%04d.bin" % entry['file_id'])
+            entry['real_filename'].append("file_%04d.bin" % (entry['file_id'] + base_file_id))
 
         for filename in entry['real_filename']:
             output_filename = os.path.join(output_folder, get_sanitized_filename(filename))
@@ -151,15 +152,15 @@ def extract_overlays(file_entries, output_folder, overlay_exe_offsets):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    for entry in file_entries:
+    for entry in file_entries[::]:
         if not entry['real_filename']:
             entry['real_filename'].append("file_%04d.bin" % entry['file_id'])
 
         for filename in entry['real_filename']:
-            if not os.path.exists(filename):
-                continue
+            input_filename = os.path.join(output_folder, get_sanitized_filename(filename))
 
-            output_filename = os.path.join(output_folder, get_sanitized_filename(filename))
+            if not os.path.exists(input_filename):
+                continue
 
             if entry.get('overlays', None) is not None:
                 for overlay_idx in entry['overlays']['indexes']:

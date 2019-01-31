@@ -111,9 +111,9 @@ class Iidx8thCsHandler:
     @staticmethod
     def extract(exe_filename, input_folder, output_folder):
         main_archive_file_entries = []
-        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_8", "BM2DX8A.BIN"), 0x19a180, 0x790 // 8, len(main_archive_file_entries))
-        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_8", "BM2DX8B.BIN"), 0x19a940, 0x740 // 8, len(main_archive_file_entries))
-        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_8", "BM2DX8C.BIN"), 0x19b080, 0x2db0 // 8, len(main_archive_file_entries))
+        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_8", "BM2DX8B.BIN"), 0x19a940, 0x740 // 16, len(main_archive_file_entries))
+        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_8", "BM2DX8C.BIN"), 0x19b080, 0x2db0 // 16, len(main_archive_file_entries))
+        main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_8", "BM2DX8A.BIN"), 0x19a180, 0x790 // 16, len(main_archive_file_entries))
 
         Iidx8thCsHandler.read_songlist(exe_filename, 0x1a4060, 0x36e0 // 0x9c, main_archive_file_entries)
 

@@ -144,7 +144,7 @@ class Iidx14thCsHandler:
         Iidx14thCsHandler.read_songlist(exe_filename, 0x156300, 0x76b4 // 0x11c, main_archive_file_entries, animation_file_entries)
 
         common.extract_files(main_archive_file_entries, output_folder)
-        common.extract_files(animation_file_entries, output_folder)
+        common.extract_files(animation_file_entries, output_folder, len(main_archive_file_entries))
         common.extract_overlays(animation_file_entries, output_folder, None)
 
 

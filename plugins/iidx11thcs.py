@@ -105,7 +105,7 @@ class Iidx11thCsHandler:
         Iidx11thCsHandler.read_songlist(exe_filename, 0x1c21f0, 0x6f40 // 0x140, main_archive_file_entries, animation_file_entries)
 
         common.extract_files(main_archive_file_entries, output_folder)
-        common.extract_files(animation_file_entries, output_folder)
+        common.extract_files(animation_file_entries, output_folder, len(main_archive_file_entries))
         common.extract_overlays(animation_file_entries, output_folder, None)
 
 

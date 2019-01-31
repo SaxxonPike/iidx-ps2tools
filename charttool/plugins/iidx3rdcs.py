@@ -21,7 +21,11 @@ def chart_to_json(input_filename):
             if offset == 0x7fff:
                 break
 
+            orig_offset = offset
             offset = round((offset * TIMESTAMP_MULTIPLIER) / 1000)
+
+            if offset == 14927:
+                print("%d %04x" % (offset, orig_offset))
 
             event = create_event_ps2(offset, c1, None, param)
 
