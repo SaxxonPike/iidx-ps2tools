@@ -6,8 +6,8 @@ import tempfile
 
 from PIL import Image
 
-import ps2textures
-import transforms
+import animtool.ps2textures as ps2textures
+import animtool.transforms as transforms
 
 
 def decode_lzss(input_data, decomp_size):

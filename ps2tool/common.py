@@ -4,6 +4,8 @@ import blowfish
 
 import ps2overlay
 
+from animtool.animation_ps2 import AnimationPs2
+
 DIFFICULTY_MAPPING = {
     0: 'SP HYPER',
     1: 'DP HYPER',
@@ -104,6 +106,9 @@ def read_string(infile, offset):
 
 
 def extract_file(filename, entry, output_filename):
+    if not output_filename.endswith(".if"):# or "KEEP ON" not in output_filename:
+        return
+
     print("Extracting", output_filename)
 
     with open(filename, "rb") as infile:
@@ -147,12 +152,15 @@ def extract_overlays(file_entries, output_folder, overlay_exe_offsets):
             if entry.get('overlays', None) is not None:
                 for overlay_idx in entry['overlays']['indexes']:
                     ifs_filename = os.path.join(output_folder, get_sanitized_filename(filename))
-                    output_filename = get_sanitized_filename("%s [%04x]" % (ifs_filename.replace(".if", ""), overlay_idx))
+                    output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04x]" % (ifs_filename.replace(".if", ""), overlay_idx)))
                     ps2overlay.extract_overlay(entry['overlays']['exe'], ifs_filename, entry['overlays']['palette'], overlay_idx, output_filename, overlay_exe_offsets)
 
             if entry.get('overlays_new', None) is not None:
                 for overlay in entry['overlays_new']:
-                    animation_id, overlay_idx = overlay
                     ifs_filename = os.path.join(output_folder, get_sanitized_filename(filename))
-                    output_filename = get_sanitized_filename("%s [%04x]" % (ifs_filename.replace(".if", ""), overlay_idx))
-                    # Extract new style overlay using animtool
+                    output_filename = get_sanitized_filename("%s [%04x]" % (ifs_filename.replace(".if", ""), overlay['overlay_idx']))
+
+                    animparser = AnimationPs2(ifs_filename, 8, False)
+                    animparser.render([], output_filename, False)
+
+

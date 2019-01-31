@@ -43,6 +43,8 @@ def read_frames_from_ifs(filename):
 
 
 def extract_overlay(exe_filename, ifs_filename, palette_idx, overlay_id, output_filename, overlay_exe_offsets):
+    print("Rendering", output_filename)
+
     exe = bytearray(open(exe_filename, "rb").read())
 
     palette_offset = struct.unpack("<I", exe[overlay_exe_offsets['palette_table']+(palette_idx*4):overlay_exe_offsets['palette_table']+(palette_idx*4)+4])[0] - overlay_exe_offsets['base_offset']
@@ -108,12 +110,13 @@ def extract_overlay(exe_filename, ifs_filename, palette_idx, overlay_id, output_
 
         sprites.append(cur_frame)
 
+
     overlay_images = read_frames_from_ifs(ifs_filename)
 
     frames = []
     idx = 0
     for sprite_parts in sprites:
-        output = Image.new('RGBA', (512, 512))
+        output = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
 
         for sprite in sprite_parts:
             crop_region = (sprite['src_x'], sprite['src_y'], sprite['src_x'] + sprite['src_w'], sprite['src_y'] + sprite['src_h'])
@@ -154,7 +157,8 @@ def extract_overlay(exe_filename, ifs_filename, palette_idx, overlay_id, output_
 
             output.paste(src_img, dst_region, src_img.convert("RGBA"))
 
-        frames.append(output.crop((171, 0, 469, 208)).copy())
+        frames.append(output.crop((171, 0, 171 + 298, 219)).copy())
 
     if len(frames) > 0:
-        frames[0].save('{}.gif'.format(output_filename), save_all=True, append_images=frames[1:], loop=0xffff, disposal=2)
+        #frames[0].save('{}.gif'.format(output_filename), save_all=True, append_images=frames[1:], loop=0xffff, disposal=0) # GIF sucks
+        frames[0].save('{}.webp'.format(output_filename), save_all=True, append_images=frames[1:], loop=0xffff)

@@ -2,7 +2,7 @@
 
 import argparse
 
-from animation_ps2 import AnimationPs2
+from animtool.animation_ps2 import AnimationPs2
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

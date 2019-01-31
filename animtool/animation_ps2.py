@@ -7,9 +7,8 @@ import threading
 
 from PIL import Image
 
-import sprites
-
-import imageops
+import animtool.imageops as imageops
+import animtool.sprites as sprites
 
 
 def get_base_frame_from_animation(animation):
