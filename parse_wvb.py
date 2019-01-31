@@ -2,6 +2,18 @@ import argparse
 import os
 import struct
 import sys
+import subprocess
+
+import pydub
+
+
+def percentage_to_db(percentage):
+    if percentage == 0:
+        return 0
+
+    import math
+    return 20 * math.log10(percentage / 100)
+
 
 def find_num_samples(infile, offset):
     cur_offset = infile.tell()
@@ -17,7 +29,11 @@ def find_num_samples(infile, offset):
 
     return filesize
 
+
 def parse_wvb(filename, output_folder):
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
     with open(filename, "rb") as infile:
         archive_size, section_size, section2_relative_offset = struct.unpack("<III", infile.read(12))
         section2_offset = archive_size - section2_relative_offset
@@ -27,7 +43,7 @@ def parse_wvb(filename, output_folder):
         file_id = 0
 
         while infile.tell() < 0x4000:
-            entry_id, _, _, _, entry_type, sample_rate1, sample_rate2, offset1, offset2, filesize, _ = struct.unpack("<HHBHBIIIIII", infile.read(0x20))
+            entry_id, _, _, volume, pan, entry_type, sample_rate1, sample_rate2, offset1, offset2, filesize, _ = struct.unpack("<HHBBBBIIIIII", infile.read(0x20))
 
             cur_offset = infile.tell()
 
@@ -35,6 +51,7 @@ def parse_wvb(filename, output_folder):
 
             if entry_type == 0:
                 continue
+
             elif entry_type == 2:
                 offset1 -= 0xf020
                 files.append([offset1, sample_rate1, find_num_samples(infile, offset1)])
@@ -52,6 +69,9 @@ def parse_wvb(filename, output_folder):
 
             for offset, sample_rate, size in files:
                 output_filename = os.path.join(output_folder, "%04d.pcm" % entry_id)
+
+                print("Extracting", output_filename)
+
                 with open(output_filename, "wb") as outfile:
                     outfile.write(struct.pack(">IHHB", size, 0, sample_rate, 1))
                     outfile.write(bytearray([0] * 0x807))
@@ -59,9 +79,17 @@ def parse_wvb(filename, output_folder):
                     infile.seek(offset)
                     outfile.write(infile.read(size))
 
-                    print("Extracting", output_filename)
+                wav_output_filename = output_filename.replace(".pcm", ".wav")
+                subprocess.call('test.exe -o "%s" "%s"' % (wav_output_filename, output_filename))
+                os.unlink(output_filename)
+
+                wav = pydub.AudioSegment.from_file(wav_output_filename)
+                wav = wav.pan((pan - (128 / 2)) / (128 / 2))
+                wav += percentage_to_db((volume / 127) * 100 * 0.75)
+                wav.export(wav_output_filename, format="wav")
 
             infile.seek(cur_offset)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

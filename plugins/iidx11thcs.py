@@ -106,6 +106,7 @@ class Iidx11thCsHandler:
 
         common.extract_files(main_archive_file_entries, output_folder)
         common.extract_files(animation_file_entries, output_folder)
+        common.extract_overlays(animation_file_entries, output_folder, None)
 
 
 def get_class():

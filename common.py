@@ -7,6 +7,18 @@ import ps2overlay
 from animtool.animation_ps2 import AnimationPs2
 
 DIFFICULTY_MAPPING = {
+    0: 'SP NORMAL',
+    1: 'DP NORMAL',
+    2: 'SP HYPER',
+    3: 'DP HYPER',
+    4: 'SP ANOTHER',
+    5: 'DP ANOTHER',
+    6: 'SP BEGINNER',
+    7: 'DP BLACK',
+    8: 'DP BLACK',
+}
+
+OLD_DIFFICULTY_MAPPING = {
     0: 'SP HYPER',
     1: 'DP HYPER',
     2: 'SP ANOTHER',
@@ -14,9 +26,9 @@ DIFFICULTY_MAPPING = {
     4: 'SP NORMAL',
     5: 'DP NORMAL',
     6: 'SP BEGINNER',
-    7: 'DP BEGINNER', # Never used?
+    7: 'SP BLACK',
+    8: 'DP BLACK',
 }
-
 
 def decode_lz(input_data):
     # Based on decompression code from IIDX GOLD CS
@@ -106,9 +118,6 @@ def read_string(infile, offset):
 
 
 def extract_file(filename, entry, output_filename):
-    if not output_filename.endswith(".if"):# or "KEEP ON" not in output_filename:
-        return
-
     print("Extracting", output_filename)
 
     with open(filename, "rb") as infile:
@@ -147,6 +156,9 @@ def extract_overlays(file_entries, output_folder, overlay_exe_offsets):
             entry['real_filename'].append("file_%04d.bin" % entry['file_id'])
 
         for filename in entry['real_filename']:
+            if not os.path.exists(filename):
+                continue
+
             output_filename = os.path.join(output_folder, get_sanitized_filename(filename))
 
             if entry.get('overlays', None) is not None:
@@ -156,11 +168,13 @@ def extract_overlays(file_entries, output_folder, overlay_exe_offsets):
                     ps2overlay.extract_overlay(entry['overlays']['exe'], ifs_filename, entry['overlays']['palette'], overlay_idx, output_filename, overlay_exe_offsets)
 
             if entry.get('overlays_new', None) is not None:
+                animation_id = []
+
                 for overlay in entry['overlays_new']:
-                    ifs_filename = os.path.join(output_folder, get_sanitized_filename(filename))
-                    output_filename = get_sanitized_filename("%s [%04x]" % (ifs_filename.replace(".if", ""), overlay['overlay_idx']))
+                    animation_id.append(overlay['animation_id'])
 
-                    animparser = AnimationPs2(ifs_filename, 8, False)
-                    animparser.render([], output_filename, False)
+                ifs_filename = os.path.join(output_folder, get_sanitized_filename(filename))
+                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04x]" % (filename.replace(".if", ""), overlay['overlay_idx'])))
 
-
+                animparser = AnimationPs2(ifs_filename, 8, False)
+                animparser.render(animation_id, output_filename, False)

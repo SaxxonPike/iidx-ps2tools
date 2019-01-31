@@ -8,6 +8,7 @@
 # This Python port is not guaranteed to be working and will not be maintained beyond what I need for my personal project.
 
 from cpython cimport array
+from libc.stdlib cimport malloc, free
 
 import os
 
@@ -21,7 +22,7 @@ def decode_ps2_texture(str filename, int width, int height, int bpp):
     _data_raw = bytearray(open(filename, "rb").read())
 
     cdef array.array data_raw = array.array('B', _data_raw)
-    cdef unsigned char[1024 * 1024 * 4] gsmem
+    cdef unsigned char *gsmem = <unsigned char*>malloc(1024 * 1024 * 4)
 
     cdef int palette_len = 0x400
     cdef unsigned char *data = data_raw.data.as_uchars
@@ -72,7 +73,10 @@ def decode_ps2_texture(str filename, int width, int height, int bpp):
         i += 1
         j += 4
 
-    return [decoded_raw_image[x] for x in range(0, image_data_len * 4)]
+    output = [decoded_raw_image[x] for x in range(0, image_data_len * 4)]
+    free(gsmem)
+
+    return output
 
 
 cdef int *block32 = [

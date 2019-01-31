@@ -624,6 +624,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include <string.h>
 #include <stdio.h>
 #include "pythread.h"
+#include <stdlib.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -1388,6 +1389,8 @@ static PyTypeObject *__pyx_ptype_7cpython_7complex_complex = 0;
 static PyTypeObject *__pyx_ptype_7cpython_5array_array = 0;
 static CYTHON_INLINE int __pyx_f_7cpython_5array_extend_buffer(arrayobject *, char *, Py_ssize_t); /*proto*/
 
+/* Module declarations from 'libc.stdlib' */
+
 /* Module declarations from 'ps2textures' */
 static int *__pyx_v_11ps2textures_palette_idx;
 static int *__pyx_v_11ps2textures_block32;
@@ -1433,6 +1436,7 @@ static const char __pyx_k_MASK_R[] = "MASK_R";
 static const char __pyx_k_exists[] = "exists";
 static const char __pyx_k_height[] = "height";
 static const char __pyx_k_import[] = "__import__";
+static const char __pyx_k_output[] = "output";
 static const char __pyx_k_MASK_RGB[] = "MASK_RGB";
 static const char __pyx_k_data_raw[] = "_data_raw";
 static const char __pyx_k_filename[] = "filename";
@@ -1486,6 +1490,7 @@ static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_open;
 static PyObject *__pyx_n_s_os;
+static PyObject *__pyx_n_s_output;
 static PyObject *__pyx_n_s_palette_data;
 static PyObject *__pyx_n_s_palette_len;
 static PyObject *__pyx_n_s_path;
@@ -1526,7 +1531,7 @@ static PyObject *__pyx_tuple_;
 static PyObject *__pyx_codeobj__2;
 /* Late includes */
 
-/* "ps2textures.pyx":16
+/* "ps2textures.pyx":17
  * cdef int *palette_idx = [0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23, 8, 9, 10, 11, 12, 13, 14, 15, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55, 40, 41, 42, 43, 44, 45, 46, 47, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 80, 81, 82, 83, 84, 85, 86, 87, 72, 73, 74, 75, 76, 77, 78, 79, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 112, 113, 114, 115, 116, 117, 118, 119, 104, 105, 106, 107, 108, 109, 110, 111, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 144, 145, 146, 147, 148, 149, 150, 151, 136, 137, 138, 139, 140, 141, 142, 143, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 176, 177, 178, 179, 180, 181, 182, 183, 168, 169, 170, 171, 172, 173, 174, 175, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 208, 209, 210, 211, 212, 213, 214, 215, 200, 201, 202, 203, 204, 205, 206, 207, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 240, 241, 242, 243, 244, 245, 246, 247, 232, 233, 234, 235, 236, 237, 238, 239, 248, 249, 250, 251, 252, 253, 254, 255]
  * 
  * def decode_ps2_texture(str filename, int width, int height, int bpp):             # <<<<<<<<<<<<<<
@@ -1572,23 +1577,23 @@ static PyObject *__pyx_pw_11ps2textures_1decode_ps2_texture(PyObject *__pyx_self
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("decode_ps2_texture", 1, 4, 4, 1); __PYX_ERR(0, 16, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("decode_ps2_texture", 1, 4, 4, 1); __PYX_ERR(0, 17, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_height)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("decode_ps2_texture", 1, 4, 4, 2); __PYX_ERR(0, 16, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("decode_ps2_texture", 1, 4, 4, 2); __PYX_ERR(0, 17, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bpp)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("decode_ps2_texture", 1, 4, 4, 3); __PYX_ERR(0, 16, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("decode_ps2_texture", 1, 4, 4, 3); __PYX_ERR(0, 17, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "decode_ps2_texture") < 0)) __PYX_ERR(0, 16, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "decode_ps2_texture") < 0)) __PYX_ERR(0, 17, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -1599,19 +1604,19 @@ static PyObject *__pyx_pw_11ps2textures_1decode_ps2_texture(PyObject *__pyx_self
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
     __pyx_v_filename = ((PyObject*)values[0]);
-    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 16, __pyx_L3_error)
-    __pyx_v_height = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_height == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 16, __pyx_L3_error)
-    __pyx_v_bpp = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_bpp == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 16, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L3_error)
+    __pyx_v_height = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_height == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L3_error)
+    __pyx_v_bpp = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_bpp == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("decode_ps2_texture", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 16, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("decode_ps2_texture", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 17, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("ps2textures.decode_ps2_texture", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_filename), (&PyUnicode_Type), 1, "filename", 1))) __PYX_ERR(0, 16, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_filename), (&PyUnicode_Type), 1, "filename", 1))) __PYX_ERR(0, 17, __pyx_L1_error)
   __pyx_r = __pyx_pf_11ps2textures_decode_ps2_texture(__pyx_self, __pyx_v_filename, __pyx_v_width, __pyx_v_height, __pyx_v_bpp);
 
   /* function exit code */
@@ -1626,7 +1631,7 @@ static PyObject *__pyx_pw_11ps2textures_1decode_ps2_texture(PyObject *__pyx_self
 static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_filename, int __pyx_v_width, int __pyx_v_height, CYTHON_UNUSED int __pyx_v_bpp) {
   PyObject *__pyx_v__data_raw = NULL;
   arrayobject *__pyx_v_data_raw = 0;
-  unsigned char __pyx_v_gsmem[((0x400 * 0x400) * 4)];
+  unsigned char *__pyx_v_gsmem;
   int __pyx_v_palette_len;
   unsigned char *__pyx_v_data;
   unsigned int *__pyx_v_palette_data;
@@ -1647,6 +1652,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
   int __pyx_v_rrh;
   PyObject *__pyx_v_raw_image_data = NULL;
   PyObject *__pyx_v_decoded_raw_image = NULL;
+  PyObject *__pyx_v_output = NULL;
   long __pyx_7genexpr__pyx_v_x;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -1662,19 +1668,19 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
   long __pyx_t_10;
   __Pyx_RefNannySetupContext("decode_ps2_texture", 0);
 
-  /* "ps2textures.pyx":17
+  /* "ps2textures.pyx":18
  * 
  * def decode_ps2_texture(str filename, int width, int height, int bpp):
  *     if not os.path.exists(filename):             # <<<<<<<<<<<<<<
  *         print("Couldn't find image", filename)
  *         return None
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_exists); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -1689,22 +1695,22 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_v_filename) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_filename);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_5 = ((!__pyx_t_4) != 0);
   if (__pyx_t_5) {
 
-    /* "ps2textures.pyx":18
+    /* "ps2textures.pyx":19
  * def decode_ps2_texture(str filename, int width, int height, int bpp):
  *     if not os.path.exists(filename):
  *         print("Couldn't find image", filename)             # <<<<<<<<<<<<<<
  *         return None
  * 
  */
-    __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
+    __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_kp_u_Couldn_t_find_image);
     __Pyx_GIVEREF(__pyx_kp_u_Couldn_t_find_image);
@@ -1712,12 +1718,12 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
     __Pyx_INCREF(__pyx_v_filename);
     __Pyx_GIVEREF(__pyx_v_filename);
     PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_filename);
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 19, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "ps2textures.pyx":19
+    /* "ps2textures.pyx":20
  *     if not os.path.exists(filename):
  *         print("Couldn't find image", filename)
  *         return None             # <<<<<<<<<<<<<<
@@ -1728,7 +1734,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "ps2textures.pyx":17
+    /* "ps2textures.pyx":18
  * 
  * def decode_ps2_texture(str filename, int width, int height, int bpp):
  *     if not os.path.exists(filename):             # <<<<<<<<<<<<<<
@@ -1737,14 +1743,14 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   }
 
-  /* "ps2textures.pyx":21
+  /* "ps2textures.pyx":22
  *         return None
  * 
  *     _data_raw = bytearray(open(filename, "rb").read())             # <<<<<<<<<<<<<<
  * 
  *     cdef array.array data_raw = array.array('B', _data_raw)
  */
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_filename);
   __Pyx_GIVEREF(__pyx_v_filename);
@@ -1752,10 +1758,10 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
   __Pyx_INCREF(__pyx_n_u_rb);
   __Pyx_GIVEREF(__pyx_n_u_rb);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_n_u_rb);
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_read); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_read); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -1770,23 +1776,23 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
   }
   __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 21, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v__data_raw = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "ps2textures.pyx":23
+  /* "ps2textures.pyx":24
  *     _data_raw = bytearray(open(filename, "rb").read())
  * 
  *     cdef array.array data_raw = array.array('B', _data_raw)             # <<<<<<<<<<<<<<
- *     cdef unsigned char[1024 * 1024 * 4] gsmem
+ *     cdef unsigned char *gsmem = <unsigned char*>malloc(1024 * 1024 * 4)
  * 
  */
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_u_B);
   __Pyx_GIVEREF(__pyx_n_u_B);
@@ -1794,14 +1800,23 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
   __Pyx_INCREF(__pyx_v__data_raw);
   __Pyx_GIVEREF(__pyx_v__data_raw);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v__data_raw);
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_data_raw = ((arrayobject *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "ps2textures.pyx":26
- *     cdef unsigned char[1024 * 1024 * 4] gsmem
+  /* "ps2textures.pyx":25
+ * 
+ *     cdef array.array data_raw = array.array('B', _data_raw)
+ *     cdef unsigned char *gsmem = <unsigned char*>malloc(1024 * 1024 * 4)             # <<<<<<<<<<<<<<
+ * 
+ *     cdef int palette_len = 0x400
+ */
+  __pyx_v_gsmem = ((unsigned char *)malloc(0x400000));
+
+  /* "ps2textures.pyx":27
+ *     cdef unsigned char *gsmem = <unsigned char*>malloc(1024 * 1024 * 4)
  * 
  *     cdef int palette_len = 0x400             # <<<<<<<<<<<<<<
  *     cdef unsigned char *data = data_raw.data.as_uchars
@@ -1809,7 +1824,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_palette_len = 0x400;
 
-  /* "ps2textures.pyx":27
+  /* "ps2textures.pyx":28
  * 
  *     cdef int palette_len = 0x400
  *     cdef unsigned char *data = data_raw.data.as_uchars             # <<<<<<<<<<<<<<
@@ -1819,7 +1834,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
   __pyx_t_6 = __pyx_v_data_raw->data.as_uchars;
   __pyx_v_data = __pyx_t_6;
 
-  /* "ps2textures.pyx":28
+  /* "ps2textures.pyx":29
  *     cdef int palette_len = 0x400
  *     cdef unsigned char *data = data_raw.data.as_uchars
  *     cdef unsigned int *palette_data = <unsigned int*>data             # <<<<<<<<<<<<<<
@@ -1828,7 +1843,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_palette_data = ((unsigned int *)__pyx_v_data);
 
-  /* "ps2textures.pyx":29
+  /* "ps2textures.pyx":30
  *     cdef unsigned char *data = data_raw.data.as_uchars
  *     cdef unsigned int *palette_data = <unsigned int*>data
  *     cdef unsigned char *image_data = data + palette_len             # <<<<<<<<<<<<<<
@@ -1837,7 +1852,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_image_data = (__pyx_v_data + __pyx_v_palette_len);
 
-  /* "ps2textures.pyx":30
+  /* "ps2textures.pyx":31
  *     cdef unsigned int *palette_data = <unsigned int*>data
  *     cdef unsigned char *image_data = data + palette_len
  *     cdef unsigned int *image_data_int = <unsigned int*>image_data             # <<<<<<<<<<<<<<
@@ -1846,7 +1861,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_image_data_int = ((unsigned int *)__pyx_v_image_data);
 
-  /* "ps2textures.pyx":31
+  /* "ps2textures.pyx":32
  *     cdef unsigned char *image_data = data + palette_len
  *     cdef unsigned int *image_data_int = <unsigned int*>image_data
  *     cdef unsigned int *gsmem_int = <unsigned int*>gsmem             # <<<<<<<<<<<<<<
@@ -1855,7 +1870,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_gsmem_int = ((unsigned int *)__pyx_v_gsmem);
 
-  /* "ps2textures.pyx":32
+  /* "ps2textures.pyx":33
  *     cdef unsigned int *image_data_int = <unsigned int*>image_data
  *     cdef unsigned int *gsmem_int = <unsigned int*>gsmem
  *     cdef int image_data_len = width * height             # <<<<<<<<<<<<<<
@@ -1864,7 +1879,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_image_data_len = (__pyx_v_width * __pyx_v_height);
 
-  /* "ps2textures.pyx":34
+  /* "ps2textures.pyx":35
  *     cdef int image_data_len = width * height
  * 
  *     cdef unsigned int MASK_ALPHA = 0xff000000             # <<<<<<<<<<<<<<
@@ -1873,7 +1888,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_MASK_ALPHA = 0xff000000;
 
-  /* "ps2textures.pyx":35
+  /* "ps2textures.pyx":36
  * 
  *     cdef unsigned int MASK_ALPHA = 0xff000000
  *     cdef unsigned int MASK_R = 0x00ff0000             # <<<<<<<<<<<<<<
@@ -1882,7 +1897,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_MASK_R = 0x00ff0000;
 
-  /* "ps2textures.pyx":36
+  /* "ps2textures.pyx":37
  *     cdef unsigned int MASK_ALPHA = 0xff000000
  *     cdef unsigned int MASK_R = 0x00ff0000
  *     cdef unsigned int MASK_G = 0x0000ff00             # <<<<<<<<<<<<<<
@@ -1891,7 +1906,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_MASK_G = 0x0000ff00;
 
-  /* "ps2textures.pyx":37
+  /* "ps2textures.pyx":38
  *     cdef unsigned int MASK_R = 0x00ff0000
  *     cdef unsigned int MASK_G = 0x0000ff00
  *     cdef unsigned int MASK_B = 0x000000ff             # <<<<<<<<<<<<<<
@@ -1900,7 +1915,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_MASK_B = 0x000000ff;
 
-  /* "ps2textures.pyx":38
+  /* "ps2textures.pyx":39
  *     cdef unsigned int MASK_G = 0x0000ff00
  *     cdef unsigned int MASK_B = 0x000000ff
  *     cdef unsigned int MASK_RGB = MASK_R | MASK_G | MASK_B             # <<<<<<<<<<<<<<
@@ -1909,7 +1924,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_MASK_RGB = ((__pyx_v_MASK_R | __pyx_v_MASK_G) | __pyx_v_MASK_B);
 
-  /* "ps2textures.pyx":44
+  /* "ps2textures.pyx":45
  *     cdef int i, j
  * 
  *     cdef int rrw = width / 2             # <<<<<<<<<<<<<<
@@ -1918,7 +1933,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_rrw = (((long)__pyx_v_width) / 2);
 
-  /* "ps2textures.pyx":45
+  /* "ps2textures.pyx":46
  * 
  *     cdef int rrw = width / 2
  *     cdef int rrh = height / 2             # <<<<<<<<<<<<<<
@@ -1927,45 +1942,45 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_rrh = (((long)__pyx_v_height) / 2);
 
-  /* "ps2textures.pyx":47
+  /* "ps2textures.pyx":48
  *     cdef int rrh = height / 2
  * 
  *     raw_image_data = bytearray(width * height)             # <<<<<<<<<<<<<<
  * 
  *     writeTexPSMCT32(0, rrw / 0x40, 0, 0, rrw, rrh, image_data_int, gsmem_int)
  */
-  __pyx_t_2 = __Pyx_PyInt_From_int((__pyx_v_width * __pyx_v_height)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int((__pyx_v_width * __pyx_v_height)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_raw_image_data = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "ps2textures.pyx":49
+  /* "ps2textures.pyx":50
  *     raw_image_data = bytearray(width * height)
  * 
  *     writeTexPSMCT32(0, rrw / 0x40, 0, 0, rrw, rrh, image_data_int, gsmem_int)             # <<<<<<<<<<<<<<
  *     readTexPSMT8(0, width / 0x40, 0, 0, width, height, raw_image_data, gsmem)
  * 
  */
-  __pyx_t_1 = __pyx_f_11ps2textures_writeTexPSMCT32(0, (((long)__pyx_v_rrw) / 0x40), 0, 0, __pyx_v_rrw, __pyx_v_rrh, __pyx_v_image_data_int, __pyx_v_gsmem_int); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_11ps2textures_writeTexPSMCT32(0, (((long)__pyx_v_rrw) / 0x40), 0, 0, __pyx_v_rrw, __pyx_v_rrh, __pyx_v_image_data_int, __pyx_v_gsmem_int); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "ps2textures.pyx":50
+  /* "ps2textures.pyx":51
  * 
  *     writeTexPSMCT32(0, rrw / 0x40, 0, 0, rrw, rrh, image_data_int, gsmem_int)
  *     readTexPSMT8(0, width / 0x40, 0, 0, width, height, raw_image_data, gsmem)             # <<<<<<<<<<<<<<
  * 
  *     i = 0
  */
-  __pyx_t_6 = __Pyx_PyObject_AsWritableUString(__pyx_v_raw_image_data); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) __PYX_ERR(0, 50, __pyx_L1_error)
-  __pyx_t_1 = __pyx_f_11ps2textures_readTexPSMT8(0, (((long)__pyx_v_width) / 0x40), 0, 0, __pyx_v_width, __pyx_v_height, __pyx_t_6, __pyx_v_gsmem); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_AsWritableUString(__pyx_v_raw_image_data); if (unlikely((!__pyx_t_6) && PyErr_Occurred())) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_11ps2textures_readTexPSMT8(0, (((long)__pyx_v_width) / 0x40), 0, 0, __pyx_v_width, __pyx_v_height, __pyx_t_6, __pyx_v_gsmem); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "ps2textures.pyx":52
+  /* "ps2textures.pyx":53
  *     readTexPSMT8(0, width / 0x40, 0, 0, width, height, raw_image_data, gsmem)
  * 
  *     i = 0             # <<<<<<<<<<<<<<
@@ -1974,7 +1989,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_i = 0;
 
-  /* "ps2textures.pyx":53
+  /* "ps2textures.pyx":54
  * 
  *     i = 0
  *     while i < palette_len / 4:             # <<<<<<<<<<<<<<
@@ -1985,7 +2000,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
     __pyx_t_5 = ((__pyx_v_i < (((long)__pyx_v_palette_len) / 4)) != 0);
     if (!__pyx_t_5) break;
 
-    /* "ps2textures.pyx":54
+    /* "ps2textures.pyx":55
  *     i = 0
  *     while i < palette_len / 4:
  *         color = palette_data[i]             # <<<<<<<<<<<<<<
@@ -1994,7 +2009,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
     __pyx_v_color = (__pyx_v_palette_data[__pyx_v_i]);
 
-    /* "ps2textures.pyx":55
+    /* "ps2textures.pyx":56
  *     while i < palette_len / 4:
  *         color = palette_data[i]
  *         a = color & MASK_ALPHA             # <<<<<<<<<<<<<<
@@ -2003,7 +2018,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
     __pyx_v_a = (__pyx_v_color & __pyx_v_MASK_ALPHA);
 
-    /* "ps2textures.pyx":56
+    /* "ps2textures.pyx":57
  *         color = palette_data[i]
  *         a = color & MASK_ALPHA
  *         a >>= 24             # <<<<<<<<<<<<<<
@@ -2012,7 +2027,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
     __pyx_v_a = (__pyx_v_a >> 24);
 
-    /* "ps2textures.pyx":57
+    /* "ps2textures.pyx":58
  *         a = color & MASK_ALPHA
  *         a >>= 24
  *         a = int(0xff * (a / 128))             # <<<<<<<<<<<<<<
@@ -2021,7 +2036,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
     __pyx_v_a = ((unsigned int)(0xff * (((long)__pyx_v_a) / 0x80)));
 
-    /* "ps2textures.pyx":59
+    /* "ps2textures.pyx":60
  *         a = int(0xff * (a / 128))
  * 
  *         palette_data[i] = (color & MASK_RGB) | (a << 24)             # <<<<<<<<<<<<<<
@@ -2030,7 +2045,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
     (__pyx_v_palette_data[__pyx_v_i]) = ((__pyx_v_color & __pyx_v_MASK_RGB) | (__pyx_v_a << 24));
 
-    /* "ps2textures.pyx":60
+    /* "ps2textures.pyx":61
  * 
  *         palette_data[i] = (color & MASK_RGB) | (a << 24)
  *         i += 1             # <<<<<<<<<<<<<<
@@ -2040,22 +2055,22 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
     __pyx_v_i = (__pyx_v_i + 1);
   }
 
-  /* "ps2textures.pyx":63
+  /* "ps2textures.pyx":64
  * 
  *     # Output RGBA data
  *     decoded_raw_image = bytearray(image_data_len * 4)             # <<<<<<<<<<<<<<
  * 
  *     i = 0
  */
-  __pyx_t_1 = __Pyx_PyInt_From_long((__pyx_v_image_data_len * 4)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_long((__pyx_v_image_data_len * 4)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_decoded_raw_image = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "ps2textures.pyx":65
+  /* "ps2textures.pyx":66
  *     decoded_raw_image = bytearray(image_data_len * 4)
  * 
  *     i = 0             # <<<<<<<<<<<<<<
@@ -2064,7 +2079,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_i = 0;
 
-  /* "ps2textures.pyx":66
+  /* "ps2textures.pyx":67
  * 
  *     i = 0
  *     j = 0             # <<<<<<<<<<<<<<
@@ -2073,7 +2088,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
   __pyx_v_j = 0;
 
-  /* "ps2textures.pyx":67
+  /* "ps2textures.pyx":68
  *     i = 0
  *     j = 0
  *     while i < image_data_len:             # <<<<<<<<<<<<<<
@@ -2084,7 +2099,7 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
     __pyx_t_5 = ((__pyx_v_i < __pyx_v_image_data_len) != 0);
     if (!__pyx_t_5) break;
 
-    /* "ps2textures.pyx":68
+    /* "ps2textures.pyx":69
  *     j = 0
  *     while i < image_data_len:
  *         decoded_raw_image[j] = (palette_data[palette_idx[raw_image_data[i]]] & 0x000000ff)             # <<<<<<<<<<<<<<
@@ -2092,11 +2107,11 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  *         decoded_raw_image[j + 2] = (palette_data[palette_idx[raw_image_data[i]]] & 0x00ff0000) >> 16
  */
     if (unlikely(((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x000000ff) < 0 || ((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x000000ff) > 255)) {
-      PyErr_SetString(PyExc_ValueError, "byte must be in range(0, 256)"); __PYX_ERR(0, 68, __pyx_L1_error)
+      PyErr_SetString(PyExc_ValueError, "byte must be in range(0, 256)"); __PYX_ERR(0, 69, __pyx_L1_error)
     }
-    if (unlikely(__Pyx_SetItemInt_ByteArray(__pyx_v_decoded_raw_image, __pyx_v_j, ((unsigned char)((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x000000ff)), int, 1, __Pyx_PyInt_From_int, 0, 0, 0) < 0)) __PYX_ERR(0, 68, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt_ByteArray(__pyx_v_decoded_raw_image, __pyx_v_j, ((unsigned char)((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x000000ff)), int, 1, __Pyx_PyInt_From_int, 0, 0, 0) < 0)) __PYX_ERR(0, 69, __pyx_L1_error)
 
-    /* "ps2textures.pyx":69
+    /* "ps2textures.pyx":70
  *     while i < image_data_len:
  *         decoded_raw_image[j] = (palette_data[palette_idx[raw_image_data[i]]] & 0x000000ff)
  *         decoded_raw_image[j + 1] = (palette_data[palette_idx[raw_image_data[i]]] & 0x0000ff00) >> 8             # <<<<<<<<<<<<<<
@@ -2105,11 +2120,11 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
     __pyx_t_7 = (__pyx_v_j + 1);
     if (unlikely((((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x0000ff00) >> 8) < 0 || (((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x0000ff00) >> 8) > 255)) {
-      PyErr_SetString(PyExc_ValueError, "byte must be in range(0, 256)"); __PYX_ERR(0, 69, __pyx_L1_error)
+      PyErr_SetString(PyExc_ValueError, "byte must be in range(0, 256)"); __PYX_ERR(0, 70, __pyx_L1_error)
     }
-    if (unlikely(__Pyx_SetItemInt_ByteArray(__pyx_v_decoded_raw_image, __pyx_t_7, ((unsigned char)(((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x0000ff00) >> 8)), long, 1, __Pyx_PyInt_From_long, 0, 0, 0) < 0)) __PYX_ERR(0, 69, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt_ByteArray(__pyx_v_decoded_raw_image, __pyx_t_7, ((unsigned char)(((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x0000ff00) >> 8)), long, 1, __Pyx_PyInt_From_long, 0, 0, 0) < 0)) __PYX_ERR(0, 70, __pyx_L1_error)
 
-    /* "ps2textures.pyx":70
+    /* "ps2textures.pyx":71
  *         decoded_raw_image[j] = (palette_data[palette_idx[raw_image_data[i]]] & 0x000000ff)
  *         decoded_raw_image[j + 1] = (palette_data[palette_idx[raw_image_data[i]]] & 0x0000ff00) >> 8
  *         decoded_raw_image[j + 2] = (palette_data[palette_idx[raw_image_data[i]]] & 0x00ff0000) >> 16             # <<<<<<<<<<<<<<
@@ -2118,31 +2133,31 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
     __pyx_t_7 = (__pyx_v_j + 2);
     if (unlikely((((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x00ff0000) >> 16) < 0 || (((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x00ff0000) >> 16) > 255)) {
-      PyErr_SetString(PyExc_ValueError, "byte must be in range(0, 256)"); __PYX_ERR(0, 70, __pyx_L1_error)
+      PyErr_SetString(PyExc_ValueError, "byte must be in range(0, 256)"); __PYX_ERR(0, 71, __pyx_L1_error)
     }
-    if (unlikely(__Pyx_SetItemInt_ByteArray(__pyx_v_decoded_raw_image, __pyx_t_7, ((unsigned char)(((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x00ff0000) >> 16)), long, 1, __Pyx_PyInt_From_long, 0, 0, 0) < 0)) __PYX_ERR(0, 70, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt_ByteArray(__pyx_v_decoded_raw_image, __pyx_t_7, ((unsigned char)(((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])]) & 0x00ff0000) >> 16)), long, 1, __Pyx_PyInt_From_long, 0, 0, 0) < 0)) __PYX_ERR(0, 71, __pyx_L1_error)
 
-    /* "ps2textures.pyx":71
+    /* "ps2textures.pyx":72
  *         decoded_raw_image[j + 1] = (palette_data[palette_idx[raw_image_data[i]]] & 0x0000ff00) >> 8
  *         decoded_raw_image[j + 2] = (palette_data[palette_idx[raw_image_data[i]]] & 0x00ff0000) >> 16
  *         decoded_raw_image[j + 3] = (palette_data[palette_idx[raw_image_data[i]]] & 0xff000000) >> 24             # <<<<<<<<<<<<<<
  *         i += 1
  *         j += 4
  */
-    __pyx_t_2 = __Pyx_PyInt_From_unsigned_int((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_From_unsigned_int((__pyx_v_palette_data[(__pyx_v_11ps2textures_palette_idx[((unsigned char)(PyByteArray_AS_STRING(__pyx_v_raw_image_data)[__pyx_v_i]))])])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_1 = PyNumber_And(__pyx_t_2, __pyx_int_4278190080); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_1 = PyNumber_And(__pyx_t_2, __pyx_int_4278190080); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 72, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyInt_RshiftObjC(__pyx_t_1, __pyx_int_24, 24, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_RshiftObjC(__pyx_t_1, __pyx_int_24, 24, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_8 = __Pyx_PyInt_As_unsigned_char(__pyx_t_2); if (unlikely((__pyx_t_8 == (unsigned char)-1) && PyErr_Occurred())) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyInt_As_unsigned_char(__pyx_t_2); if (unlikely((__pyx_t_8 == (unsigned char)-1) && PyErr_Occurred())) __PYX_ERR(0, 72, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_7 = (__pyx_v_j + 3);
-    if (unlikely(__Pyx_SetItemInt_ByteArray(__pyx_v_decoded_raw_image, __pyx_t_7, __pyx_t_8, long, 1, __Pyx_PyInt_From_long, 0, 0, 0) < 0)) __PYX_ERR(0, 71, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt_ByteArray(__pyx_v_decoded_raw_image, __pyx_t_7, __pyx_t_8, long, 1, __Pyx_PyInt_From_long, 0, 0, 0) < 0)) __PYX_ERR(0, 72, __pyx_L1_error)
 
-    /* "ps2textures.pyx":72
+    /* "ps2textures.pyx":73
  *         decoded_raw_image[j + 2] = (palette_data[palette_idx[raw_image_data[i]]] & 0x00ff0000) >> 16
  *         decoded_raw_image[j + 3] = (palette_data[palette_idx[raw_image_data[i]]] & 0xff000000) >> 24
  *         i += 1             # <<<<<<<<<<<<<<
@@ -2151,42 +2166,61 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
  */
     __pyx_v_i = (__pyx_v_i + 1);
 
-    /* "ps2textures.pyx":73
+    /* "ps2textures.pyx":74
  *         decoded_raw_image[j + 3] = (palette_data[palette_idx[raw_image_data[i]]] & 0xff000000) >> 24
  *         i += 1
  *         j += 4             # <<<<<<<<<<<<<<
  * 
- *     return [decoded_raw_image[x] for x in range(0, image_data_len * 4)]
+ *     output = [decoded_raw_image[x] for x in range(0, image_data_len * 4)]
  */
     __pyx_v_j = (__pyx_v_j + 4);
   }
 
-  /* "ps2textures.pyx":75
+  /* "ps2textures.pyx":76
  *         j += 4
  * 
- *     return [decoded_raw_image[x] for x in range(0, image_data_len * 4)]             # <<<<<<<<<<<<<<
- * 
+ *     output = [decoded_raw_image[x] for x in range(0, image_data_len * 4)]             # <<<<<<<<<<<<<<
+ *     free(gsmem)
  * 
  */
-  __Pyx_XDECREF(__pyx_r);
   { /* enter inner scope */
-    __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
+    __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_7 = (__pyx_v_image_data_len * 4);
     __pyx_t_9 = __pyx_t_7;
     for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
       __pyx_7genexpr__pyx_v_x = __pyx_t_10;
-      __pyx_t_1 = __Pyx_PyInt_From_int(((unsigned char)(PyByteArray_AS_STRING(__pyx_v_decoded_raw_image)[__pyx_7genexpr__pyx_v_x]))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 75, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyInt_From_int(((unsigned char)(PyByteArray_AS_STRING(__pyx_v_decoded_raw_image)[__pyx_7genexpr__pyx_v_x]))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 76, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_2, (PyObject*)__pyx_t_1))) __PYX_ERR(0, 75, __pyx_L1_error)
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_2, (PyObject*)__pyx_t_1))) __PYX_ERR(0, 76, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     }
   } /* exit inner scope */
-  __pyx_r = __pyx_t_2;
+  __pyx_v_output = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
+
+  /* "ps2textures.pyx":77
+ * 
+ *     output = [decoded_raw_image[x] for x in range(0, image_data_len * 4)]
+ *     free(gsmem)             # <<<<<<<<<<<<<<
+ * 
+ *     return output
+ */
+  free(__pyx_v_gsmem);
+
+  /* "ps2textures.pyx":79
+ *     free(gsmem)
+ * 
+ *     return output             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_output);
+  __pyx_r = __pyx_v_output;
   goto __pyx_L0;
 
-  /* "ps2textures.pyx":16
+  /* "ps2textures.pyx":17
  * cdef int *palette_idx = [0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23, 8, 9, 10, 11, 12, 13, 14, 15, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55, 40, 41, 42, 43, 44, 45, 46, 47, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 80, 81, 82, 83, 84, 85, 86, 87, 72, 73, 74, 75, 76, 77, 78, 79, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 112, 113, 114, 115, 116, 117, 118, 119, 104, 105, 106, 107, 108, 109, 110, 111, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 144, 145, 146, 147, 148, 149, 150, 151, 136, 137, 138, 139, 140, 141, 142, 143, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 176, 177, 178, 179, 180, 181, 182, 183, 168, 169, 170, 171, 172, 173, 174, 175, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 208, 209, 210, 211, 212, 213, 214, 215, 200, 201, 202, 203, 204, 205, 206, 207, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 240, 241, 242, 243, 244, 245, 246, 247, 232, 233, 234, 235, 236, 237, 238, 239, 248, 249, 250, 251, 252, 253, 254, 255]
  * 
  * def decode_ps2_texture(str filename, int width, int height, int bpp):             # <<<<<<<<<<<<<<
@@ -2206,12 +2240,13 @@ static PyObject *__pyx_pf_11ps2textures_decode_ps2_texture(CYTHON_UNUSED PyObjec
   __Pyx_XDECREF((PyObject *)__pyx_v_data_raw);
   __Pyx_XDECREF(__pyx_v_raw_image_data);
   __Pyx_XDECREF(__pyx_v_decoded_raw_image);
+  __Pyx_XDECREF(__pyx_v_output);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "ps2textures.pyx":90
+/* "ps2textures.pyx":95
  * ]
  * 
  * cdef writeTexPSMCT32(int dbp, int dbw, int dsax, int dsay, int rrw, int rrh, unsigned int *data, unsigned int *gsmem):             # <<<<<<<<<<<<<<
@@ -2243,7 +2278,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("writeTexPSMCT32", 0);
 
-  /* "ps2textures.pyx":91
+  /* "ps2textures.pyx":96
  * 
  * cdef writeTexPSMCT32(int dbp, int dbw, int dsax, int dsay, int rrw, int rrh, unsigned int *data, unsigned int *gsmem):
  *     cdef int startBlockPos = dbp * 64             # <<<<<<<<<<<<<<
@@ -2252,7 +2287,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
   __pyx_v_startBlockPos = (__pyx_v_dbp * 64);
 
-  /* "ps2textures.pyx":93
+  /* "ps2textures.pyx":98
  *     cdef int startBlockPos = dbp * 64
  *     cdef int page, pageX, pageY, px, py, blockX, blockY, block, bx, by, column, cx, cy, cw
  *     cdef int data_idx = 0             # <<<<<<<<<<<<<<
@@ -2261,7 +2296,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
   __pyx_v_data_idx = 0;
 
-  /* "ps2textures.pyx":94
+  /* "ps2textures.pyx":99
  *     cdef int page, pageX, pageY, px, py, blockX, blockY, block, bx, by, column, cx, cy, cw
  *     cdef int data_idx = 0
  *     cdef int x = 0             # <<<<<<<<<<<<<<
@@ -2270,7 +2305,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
   __pyx_v_x = 0;
 
-  /* "ps2textures.pyx":95
+  /* "ps2textures.pyx":100
  *     cdef int data_idx = 0
  *     cdef int x = 0
  *     cdef int y = 0             # <<<<<<<<<<<<<<
@@ -2279,7 +2314,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
   __pyx_v_y = 0;
 
-  /* "ps2textures.pyx":97
+  /* "ps2textures.pyx":102
  *     cdef int y = 0
  * 
  *     y = dsay             # <<<<<<<<<<<<<<
@@ -2288,7 +2323,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
   __pyx_v_y = __pyx_v_dsay;
 
-  /* "ps2textures.pyx":98
+  /* "ps2textures.pyx":103
  * 
  *     y = dsay
  *     while y < dsay + rrh:             # <<<<<<<<<<<<<<
@@ -2299,7 +2334,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
     __pyx_t_1 = ((__pyx_v_y < (__pyx_v_dsay + __pyx_v_rrh)) != 0);
     if (!__pyx_t_1) break;
 
-    /* "ps2textures.pyx":99
+    /* "ps2textures.pyx":104
  *     y = dsay
  *     while y < dsay + rrh:
  *         x = dsax             # <<<<<<<<<<<<<<
@@ -2308,7 +2343,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
     __pyx_v_x = __pyx_v_dsax;
 
-    /* "ps2textures.pyx":101
+    /* "ps2textures.pyx":106
  *         x = dsax
  * 
  *         while x < dsax + rrw:             # <<<<<<<<<<<<<<
@@ -2319,7 +2354,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
       __pyx_t_1 = ((__pyx_v_x < (__pyx_v_dsax + __pyx_v_rrw)) != 0);
       if (!__pyx_t_1) break;
 
-      /* "ps2textures.pyx":102
+      /* "ps2textures.pyx":107
  * 
  *         while x < dsax + rrw:
  *             pageX = x / 64             # <<<<<<<<<<<<<<
@@ -2328,7 +2363,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_pageX = (((long)__pyx_v_x) / 64);
 
-      /* "ps2textures.pyx":103
+      /* "ps2textures.pyx":108
  *         while x < dsax + rrw:
  *             pageX = x / 64
  *             pageY = y / 32             # <<<<<<<<<<<<<<
@@ -2337,7 +2372,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_pageY = (((long)__pyx_v_y) / 32);
 
-      /* "ps2textures.pyx":104
+      /* "ps2textures.pyx":109
  *             pageX = x / 64
  *             pageY = y / 32
  *             page  = pageX + pageY * dbw             # <<<<<<<<<<<<<<
@@ -2346,7 +2381,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_page = (__pyx_v_pageX + (__pyx_v_pageY * __pyx_v_dbw));
 
-      /* "ps2textures.pyx":106
+      /* "ps2textures.pyx":111
  *             page  = pageX + pageY * dbw
  * 
  *             px = x - (pageX * 64)             # <<<<<<<<<<<<<<
@@ -2355,7 +2390,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_px = (__pyx_v_x - (__pyx_v_pageX * 64));
 
-      /* "ps2textures.pyx":107
+      /* "ps2textures.pyx":112
  * 
  *             px = x - (pageX * 64)
  *             py = y - (pageY * 32)             # <<<<<<<<<<<<<<
@@ -2364,7 +2399,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_py = (__pyx_v_y - (__pyx_v_pageY * 32));
 
-      /* "ps2textures.pyx":109
+      /* "ps2textures.pyx":114
  *             py = y - (pageY * 32)
  * 
  *             blockX = px // 8             # <<<<<<<<<<<<<<
@@ -2373,7 +2408,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_blockX = (__pyx_v_px / 8);
 
-      /* "ps2textures.pyx":110
+      /* "ps2textures.pyx":115
  * 
  *             blockX = px // 8
  *             blockY = py // 8             # <<<<<<<<<<<<<<
@@ -2382,7 +2417,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_blockY = (__pyx_v_py / 8);
 
-      /* "ps2textures.pyx":111
+      /* "ps2textures.pyx":116
  *             blockX = px // 8
  *             blockY = py // 8
  *             block  = block32[blockX + blockY * 8]             # <<<<<<<<<<<<<<
@@ -2391,7 +2426,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_block = (__pyx_v_11ps2textures_block32[(__pyx_v_blockX + (__pyx_v_blockY * 8))]);
 
-      /* "ps2textures.pyx":113
+      /* "ps2textures.pyx":118
  *             block  = block32[blockX + blockY * 8]
  * 
  *             bx = px - blockX * 8             # <<<<<<<<<<<<<<
@@ -2400,7 +2435,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_bx = (__pyx_v_px - (__pyx_v_blockX * 8));
 
-      /* "ps2textures.pyx":114
+      /* "ps2textures.pyx":119
  * 
  *             bx = px - blockX * 8
  *             by = py - blockY * 8             # <<<<<<<<<<<<<<
@@ -2409,7 +2444,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_by = (__pyx_v_py - (__pyx_v_blockY * 8));
 
-      /* "ps2textures.pyx":116
+      /* "ps2textures.pyx":121
  *             by = py - blockY * 8
  * 
  *             column = by // 2             # <<<<<<<<<<<<<<
@@ -2418,7 +2453,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_column = (__pyx_v_by / 2);
 
-      /* "ps2textures.pyx":118
+      /* "ps2textures.pyx":123
  *             column = by // 2
  * 
  *             cx = bx             # <<<<<<<<<<<<<<
@@ -2427,7 +2462,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_cx = __pyx_v_bx;
 
-      /* "ps2textures.pyx":119
+      /* "ps2textures.pyx":124
  * 
  *             cx = bx
  *             cy = by - column * 2             # <<<<<<<<<<<<<<
@@ -2436,7 +2471,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_cy = (__pyx_v_by - (__pyx_v_column * 2));
 
-      /* "ps2textures.pyx":120
+      /* "ps2textures.pyx":125
  *             cx = bx
  *             cy = by - column * 2
  *             cw = columnWord32[cx + cy * 8]             # <<<<<<<<<<<<<<
@@ -2445,7 +2480,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_cw = (__pyx_v_11ps2textures_columnWord32[(__pyx_v_cx + (__pyx_v_cy * 8))]);
 
-      /* "ps2textures.pyx":122
+      /* "ps2textures.pyx":127
  *             cw = columnWord32[cx + cy * 8]
  * 
  *             gsmem[startBlockPos + page * 2048 + block * 64 + column * 16 + cw] = data[data_idx]             # <<<<<<<<<<<<<<
@@ -2454,7 +2489,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       (__pyx_v_gsmem[((((__pyx_v_startBlockPos + (__pyx_v_page * 0x800)) + (__pyx_v_block * 64)) + (__pyx_v_column * 16)) + __pyx_v_cw)]) = (__pyx_v_data[__pyx_v_data_idx]);
 
-      /* "ps2textures.pyx":123
+      /* "ps2textures.pyx":128
  * 
  *             gsmem[startBlockPos + page * 2048 + block * 64 + column * 16 + cw] = data[data_idx]
  *             data_idx += 1             # <<<<<<<<<<<<<<
@@ -2463,7 +2498,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
  */
       __pyx_v_data_idx = (__pyx_v_data_idx + 1);
 
-      /* "ps2textures.pyx":124
+      /* "ps2textures.pyx":129
  *             gsmem[startBlockPos + page * 2048 + block * 64 + column * 16 + cw] = data[data_idx]
  *             data_idx += 1
  *             x += 1             # <<<<<<<<<<<<<<
@@ -2473,7 +2508,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
       __pyx_v_x = (__pyx_v_x + 1);
     }
 
-    /* "ps2textures.pyx":126
+    /* "ps2textures.pyx":131
  *             x += 1
  * 
  *         y += 1             # <<<<<<<<<<<<<<
@@ -2483,7 +2518,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
     __pyx_v_y = (__pyx_v_y + 1);
   }
 
-  /* "ps2textures.pyx":90
+  /* "ps2textures.pyx":95
  * ]
  * 
  * cdef writeTexPSMCT32(int dbp, int dbw, int dsax, int dsay, int rrw, int rrh, unsigned int *data, unsigned int *gsmem):             # <<<<<<<<<<<<<<
@@ -2498,7 +2533,7 @@ static PyObject *__pyx_f_11ps2textures_writeTexPSMCT32(int __pyx_v_dbp, int __py
   return __pyx_r;
 }
 
-/* "ps2textures.pyx":162
+/* "ps2textures.pyx":167
  * 
  * 
  * cdef readTexPSMT8(int dbp, int dbw, int dsax, int dsay, int rrw, int rrh, unsigned char *data, unsigned char *gsmem):             # <<<<<<<<<<<<<<
@@ -2535,7 +2570,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("readTexPSMT8", 0);
 
-  /* "ps2textures.pyx":163
+  /* "ps2textures.pyx":168
  * 
  * cdef readTexPSMT8(int dbp, int dbw, int dsax, int dsay, int rrw, int rrh, unsigned char *data, unsigned char *gsmem):
  *     cdef int startBlockPos = dbp * 64             # <<<<<<<<<<<<<<
@@ -2544,7 +2579,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
   __pyx_v_startBlockPos = (__pyx_v_dbp * 64);
 
-  /* "ps2textures.pyx":165
+  /* "ps2textures.pyx":170
  *     cdef int startBlockPos = dbp * 64
  *     cdef int page, pageX, pageY, px, py, blockX, blockY, block, bx, by, column, cx, cy, cw, cb
  *     cdef int data_idx = 0             # <<<<<<<<<<<<<<
@@ -2553,7 +2588,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
   __pyx_v_data_idx = 0;
 
-  /* "ps2textures.pyx":166
+  /* "ps2textures.pyx":171
  *     cdef int page, pageX, pageY, px, py, blockX, blockY, block, bx, by, column, cx, cy, cw, cb
  *     cdef int data_idx = 0
  *     cdef int x = 0             # <<<<<<<<<<<<<<
@@ -2562,7 +2597,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
   __pyx_v_x = 0;
 
-  /* "ps2textures.pyx":167
+  /* "ps2textures.pyx":172
  *     cdef int data_idx = 0
  *     cdef int x = 0
  *     cdef int y = 0             # <<<<<<<<<<<<<<
@@ -2571,7 +2606,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
   __pyx_v_y = 0;
 
-  /* "ps2textures.pyx":169
+  /* "ps2textures.pyx":174
  *     cdef int y = 0
  * 
  *     dbw >>= 1             # <<<<<<<<<<<<<<
@@ -2580,7 +2615,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
   __pyx_v_dbw = (__pyx_v_dbw >> 1);
 
-  /* "ps2textures.pyx":171
+  /* "ps2textures.pyx":176
  *     dbw >>= 1
  * 
  *     y = dsay             # <<<<<<<<<<<<<<
@@ -2589,7 +2624,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
   __pyx_v_y = __pyx_v_dsay;
 
-  /* "ps2textures.pyx":172
+  /* "ps2textures.pyx":177
  * 
  *     y = dsay
  *     while y < dsay + rrh:             # <<<<<<<<<<<<<<
@@ -2600,7 +2635,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
     __pyx_t_1 = ((__pyx_v_y < (__pyx_v_dsay + __pyx_v_rrh)) != 0);
     if (!__pyx_t_1) break;
 
-    /* "ps2textures.pyx":173
+    /* "ps2textures.pyx":178
  *     y = dsay
  *     while y < dsay + rrh:
  *         x = dsax             # <<<<<<<<<<<<<<
@@ -2609,7 +2644,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
     __pyx_v_x = __pyx_v_dsax;
 
-    /* "ps2textures.pyx":175
+    /* "ps2textures.pyx":180
  *         x = dsax
  * 
  *         while x < dsax + rrw:             # <<<<<<<<<<<<<<
@@ -2620,7 +2655,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
       __pyx_t_1 = ((__pyx_v_x < (__pyx_v_dsax + __pyx_v_rrw)) != 0);
       if (!__pyx_t_1) break;
 
-      /* "ps2textures.pyx":176
+      /* "ps2textures.pyx":181
  * 
  *         while x < dsax + rrw:
  *             pageX = x // 128             # <<<<<<<<<<<<<<
@@ -2629,7 +2664,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_pageX = (__pyx_v_x / 0x80);
 
-      /* "ps2textures.pyx":177
+      /* "ps2textures.pyx":182
  *         while x < dsax + rrw:
  *             pageX = x // 128
  *             pageY = y // 64             # <<<<<<<<<<<<<<
@@ -2638,7 +2673,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_pageY = (__pyx_v_y / 64);
 
-      /* "ps2textures.pyx":178
+      /* "ps2textures.pyx":183
  *             pageX = x // 128
  *             pageY = y // 64
  *             page  = pageX + pageY * dbw             # <<<<<<<<<<<<<<
@@ -2647,7 +2682,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_page = (__pyx_v_pageX + (__pyx_v_pageY * __pyx_v_dbw));
 
-      /* "ps2textures.pyx":180
+      /* "ps2textures.pyx":185
  *             page  = pageX + pageY * dbw
  * 
  *             px = x - (pageX * 128)             # <<<<<<<<<<<<<<
@@ -2656,7 +2691,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_px = (__pyx_v_x - (__pyx_v_pageX * 0x80));
 
-      /* "ps2textures.pyx":181
+      /* "ps2textures.pyx":186
  * 
  *             px = x - (pageX * 128)
  *             py = y - (pageY * 64)             # <<<<<<<<<<<<<<
@@ -2665,7 +2700,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_py = (__pyx_v_y - (__pyx_v_pageY * 64));
 
-      /* "ps2textures.pyx":183
+      /* "ps2textures.pyx":188
  *             py = y - (pageY * 64)
  * 
  *             blockX = px // 16             # <<<<<<<<<<<<<<
@@ -2674,7 +2709,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_blockX = (__pyx_v_px / 16);
 
-      /* "ps2textures.pyx":184
+      /* "ps2textures.pyx":189
  * 
  *             blockX = px // 16
  *             blockY = py // 16             # <<<<<<<<<<<<<<
@@ -2683,7 +2718,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_blockY = (__pyx_v_py / 16);
 
-      /* "ps2textures.pyx":185
+      /* "ps2textures.pyx":190
  *             blockX = px // 16
  *             blockY = py // 16
  *             block  = block8[blockX + blockY * 8]             # <<<<<<<<<<<<<<
@@ -2692,7 +2727,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_block = (__pyx_v_11ps2textures_block8[(__pyx_v_blockX + (__pyx_v_blockY * 8))]);
 
-      /* "ps2textures.pyx":187
+      /* "ps2textures.pyx":192
  *             block  = block8[blockX + blockY * 8]
  * 
  *             bx = px - blockX * 16             # <<<<<<<<<<<<<<
@@ -2701,7 +2736,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_bx = (__pyx_v_px - (__pyx_v_blockX * 16));
 
-      /* "ps2textures.pyx":188
+      /* "ps2textures.pyx":193
  * 
  *             bx = px - blockX * 16
  *             by = py - blockY * 16             # <<<<<<<<<<<<<<
@@ -2710,7 +2745,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_by = (__pyx_v_py - (__pyx_v_blockY * 16));
 
-      /* "ps2textures.pyx":190
+      /* "ps2textures.pyx":195
  *             by = py - blockY * 16
  * 
  *             column = by // 4             # <<<<<<<<<<<<<<
@@ -2719,7 +2754,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_column = (__pyx_v_by / 4);
 
-      /* "ps2textures.pyx":192
+      /* "ps2textures.pyx":197
  *             column = by // 4
  * 
  *             cx = bx             # <<<<<<<<<<<<<<
@@ -2728,7 +2763,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_cx = __pyx_v_bx;
 
-      /* "ps2textures.pyx":193
+      /* "ps2textures.pyx":198
  * 
  *             cx = bx
  *             cy = by - column * 4             # <<<<<<<<<<<<<<
@@ -2737,28 +2772,28 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_cy = (__pyx_v_by - (__pyx_v_column * 4));
 
-      /* "ps2textures.pyx":194
+      /* "ps2textures.pyx":199
  *             cx = bx
  *             cy = by - column * 4
  *             cw = columnWord8[column & 1][cx + cy * 16]             # <<<<<<<<<<<<<<
  *             cb = columnByte8[cx + cy * 16]
  * 
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_columnWord8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 194, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_columnWord8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 199, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __pyx_t_3 = (__pyx_v_column & 1);
-      __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, __pyx_t_3, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 194, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, __pyx_t_3, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 199, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_3 = (__pyx_v_cx + (__pyx_v_cy * 16));
-      __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_4, __pyx_t_3, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 194, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_4, __pyx_t_3, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 199, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 194, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 199, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_v_cw = __pyx_t_5;
 
-      /* "ps2textures.pyx":195
+      /* "ps2textures.pyx":200
  *             cy = by - column * 4
  *             cw = columnWord8[column & 1][cx + cy * 16]
  *             cb = columnByte8[cx + cy * 16]             # <<<<<<<<<<<<<<
@@ -2767,7 +2802,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_cb = (__pyx_v_11ps2textures_columnByte8[(__pyx_v_cx + (__pyx_v_cy * 16))]);
 
-      /* "ps2textures.pyx":197
+      /* "ps2textures.pyx":202
  *             cb = columnByte8[cx + cy * 16]
  * 
  *             data[data_idx] = gsmem[(startBlockPos + page * 2048 + block * 64 + column * 16 + cw) * 4 + cb]             # <<<<<<<<<<<<<<
@@ -2776,7 +2811,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       (__pyx_v_data[__pyx_v_data_idx]) = (__pyx_v_gsmem[((((((__pyx_v_startBlockPos + (__pyx_v_page * 0x800)) + (__pyx_v_block * 64)) + (__pyx_v_column * 16)) + __pyx_v_cw) * 4) + __pyx_v_cb)]);
 
-      /* "ps2textures.pyx":198
+      /* "ps2textures.pyx":203
  * 
  *             data[data_idx] = gsmem[(startBlockPos + page * 2048 + block * 64 + column * 16 + cw) * 4 + cb]
  *             data_idx += 1             # <<<<<<<<<<<<<<
@@ -2785,7 +2820,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
  */
       __pyx_v_data_idx = (__pyx_v_data_idx + 1);
 
-      /* "ps2textures.pyx":199
+      /* "ps2textures.pyx":204
  *             data[data_idx] = gsmem[(startBlockPos + page * 2048 + block * 64 + column * 16 + cw) * 4 + cb]
  *             data_idx += 1
  *             x += 1             # <<<<<<<<<<<<<<
@@ -2795,7 +2830,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
       __pyx_v_x = (__pyx_v_x + 1);
     }
 
-    /* "ps2textures.pyx":201
+    /* "ps2textures.pyx":206
  *             x += 1
  * 
  *         y += 1             # <<<<<<<<<<<<<<
@@ -2803,7 +2838,7 @@ static PyObject *__pyx_f_11ps2textures_readTexPSMT8(int __pyx_v_dbp, int __pyx_v
     __pyx_v_y = (__pyx_v_y + 1);
   }
 
-  /* "ps2textures.pyx":162
+  /* "ps2textures.pyx":167
  * 
  * 
  * cdef readTexPSMT8(int dbp, int dbw, int dsax, int dsay, int rrw, int rrh, unsigned char *data, unsigned char *gsmem):             # <<<<<<<<<<<<<<
@@ -3541,6 +3576,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_open, __pyx_k_open, sizeof(__pyx_k_open), 0, 0, 1, 1},
   {&__pyx_n_s_os, __pyx_k_os, sizeof(__pyx_k_os), 0, 0, 1, 1},
+  {&__pyx_n_s_output, __pyx_k_output, sizeof(__pyx_k_output), 0, 0, 1, 1},
   {&__pyx_n_s_palette_data, __pyx_k_palette_data, sizeof(__pyx_k_palette_data), 0, 0, 1, 1},
   {&__pyx_n_s_palette_len, __pyx_k_palette_len, sizeof(__pyx_k_palette_len), 0, 0, 1, 1},
   {&__pyx_n_s_path, __pyx_k_path, sizeof(__pyx_k_path), 0, 0, 1, 1},
@@ -3559,9 +3595,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_print = __Pyx_GetBuiltinName(__pyx_n_s_print); if (!__pyx_builtin_print) __PYX_ERR(0, 18, __pyx_L1_error)
-  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 21, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 75, __pyx_L1_error)
+  __pyx_builtin_print = __Pyx_GetBuiltinName(__pyx_n_s_print); if (!__pyx_builtin_print) __PYX_ERR(0, 19, __pyx_L1_error)
+  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 76, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 109, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -3572,17 +3608,17 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "ps2textures.pyx":16
+  /* "ps2textures.pyx":17
  * cdef int *palette_idx = [0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23, 8, 9, 10, 11, 12, 13, 14, 15, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55, 40, 41, 42, 43, 44, 45, 46, 47, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 80, 81, 82, 83, 84, 85, 86, 87, 72, 73, 74, 75, 76, 77, 78, 79, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 112, 113, 114, 115, 116, 117, 118, 119, 104, 105, 106, 107, 108, 109, 110, 111, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 144, 145, 146, 147, 148, 149, 150, 151, 136, 137, 138, 139, 140, 141, 142, 143, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 176, 177, 178, 179, 180, 181, 182, 183, 168, 169, 170, 171, 172, 173, 174, 175, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 208, 209, 210, 211, 212, 213, 214, 215, 200, 201, 202, 203, 204, 205, 206, 207, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 240, 241, 242, 243, 244, 245, 246, 247, 232, 233, 234, 235, 236, 237, 238, 239, 248, 249, 250, 251, 252, 253, 254, 255]
  * 
  * def decode_ps2_texture(str filename, int width, int height, int bpp):             # <<<<<<<<<<<<<<
  *     if not os.path.exists(filename):
  *         print("Couldn't find image", filename)
  */
-  __pyx_tuple_ = PyTuple_Pack(28, __pyx_n_s_filename, __pyx_n_s_width, __pyx_n_s_height, __pyx_n_s_bpp, __pyx_n_s_data_raw, __pyx_n_s_data_raw_2, __pyx_n_s_gsmem, __pyx_n_s_palette_len, __pyx_n_s_data, __pyx_n_s_palette_data, __pyx_n_s_image_data, __pyx_n_s_image_data_int, __pyx_n_s_gsmem_int, __pyx_n_s_image_data_len, __pyx_n_s_MASK_ALPHA, __pyx_n_s_MASK_R, __pyx_n_s_MASK_G, __pyx_n_s_MASK_B, __pyx_n_s_MASK_RGB, __pyx_n_s_color, __pyx_n_s_a, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_rrw, __pyx_n_s_rrh, __pyx_n_s_raw_image_data, __pyx_n_s_decoded_raw_image, __pyx_n_s_x); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(29, __pyx_n_s_filename, __pyx_n_s_width, __pyx_n_s_height, __pyx_n_s_bpp, __pyx_n_s_data_raw, __pyx_n_s_data_raw_2, __pyx_n_s_gsmem, __pyx_n_s_palette_len, __pyx_n_s_data, __pyx_n_s_palette_data, __pyx_n_s_image_data, __pyx_n_s_image_data_int, __pyx_n_s_gsmem_int, __pyx_n_s_image_data_len, __pyx_n_s_MASK_ALPHA, __pyx_n_s_MASK_R, __pyx_n_s_MASK_G, __pyx_n_s_MASK_B, __pyx_n_s_MASK_RGB, __pyx_n_s_color, __pyx_n_s_a, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_rrw, __pyx_n_s_rrh, __pyx_n_s_raw_image_data, __pyx_n_s_decoded_raw_image, __pyx_n_s_output, __pyx_n_s_x); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
-  __pyx_codeobj__2 = (PyObject*)__Pyx_PyCode_New(4, 0, 28, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple_, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ps2textures_pyx, __pyx_n_s_decode_ps2_texture, 16, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__2)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __pyx_codeobj__2 = (PyObject*)__Pyx_PyCode_New(4, 0, 29, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple_, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ps2textures_pyx, __pyx_n_s_decode_ps2_texture, 17, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__2)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -3915,19 +3951,19 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "ps2textures.pyx":12
- * from cpython cimport array
+  /* "ps2textures.pyx":13
+ * from libc.stdlib cimport malloc, free
  * 
  * import os             # <<<<<<<<<<<<<<
  * 
  * cdef int *palette_idx = [0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23, 8, 9, 10, 11, 12, 13, 14, 15, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55, 40, 41, 42, 43, 44, 45, 46, 47, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 80, 81, 82, 83, 84, 85, 86, 87, 72, 73, 74, 75, 76, 77, 78, 79, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 112, 113, 114, 115, 116, 117, 118, 119, 104, 105, 106, 107, 108, 109, 110, 111, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 144, 145, 146, 147, 148, 149, 150, 151, 136, 137, 138, 139, 140, 141, 142, 143, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 176, 177, 178, 179, 180, 181, 182, 183, 168, 169, 170, 171, 172, 173, 174, 175, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 208, 209, 210, 211, 212, 213, 214, 215, 200, 201, 202, 203, 204, 205, 206, 207, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 240, 241, 242, 243, 244, 245, 246, 247, 232, 233, 234, 235, 236, 237, 238, 239, 248, 249, 250, 251, 252, 253, 254, 255]
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_os, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_os, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 13, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_1) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_1) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "ps2textures.pyx":14
+  /* "ps2textures.pyx":15
  * import os
  * 
  * cdef int *palette_idx = [0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23, 8, 9, 10, 11, 12, 13, 14, 15, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55, 40, 41, 42, 43, 44, 45, 46, 47, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 80, 81, 82, 83, 84, 85, 86, 87, 72, 73, 74, 75, 76, 77, 78, 79, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 112, 113, 114, 115, 116, 117, 118, 119, 104, 105, 106, 107, 108, 109, 110, 111, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 144, 145, 146, 147, 148, 149, 150, 151, 136, 137, 138, 139, 140, 141, 142, 143, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 176, 177, 178, 179, 180, 181, 182, 183, 168, 169, 170, 171, 172, 173, 174, 175, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 208, 209, 210, 211, 212, 213, 214, 215, 200, 201, 202, 203, 204, 205, 206, 207, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 240, 241, 242, 243, 244, 245, 246, 247, 232, 233, 234, 235, 236, 237, 238, 239, 248, 249, 250, 251, 252, 253, 254, 255]             # <<<<<<<<<<<<<<
@@ -4192,19 +4228,19 @@ if (!__Pyx_RefNanny) {
   __pyx_t_2[255] = 0xFF;
   __pyx_v_11ps2textures_palette_idx = __pyx_t_2;
 
-  /* "ps2textures.pyx":16
+  /* "ps2textures.pyx":17
  * cdef int *palette_idx = [0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23, 8, 9, 10, 11, 12, 13, 14, 15, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55, 40, 41, 42, 43, 44, 45, 46, 47, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 80, 81, 82, 83, 84, 85, 86, 87, 72, 73, 74, 75, 76, 77, 78, 79, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 112, 113, 114, 115, 116, 117, 118, 119, 104, 105, 106, 107, 108, 109, 110, 111, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 144, 145, 146, 147, 148, 149, 150, 151, 136, 137, 138, 139, 140, 141, 142, 143, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 176, 177, 178, 179, 180, 181, 182, 183, 168, 169, 170, 171, 172, 173, 174, 175, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 208, 209, 210, 211, 212, 213, 214, 215, 200, 201, 202, 203, 204, 205, 206, 207, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 240, 241, 242, 243, 244, 245, 246, 247, 232, 233, 234, 235, 236, 237, 238, 239, 248, 249, 250, 251, 252, 253, 254, 255]
  * 
  * def decode_ps2_texture(str filename, int width, int height, int bpp):             # <<<<<<<<<<<<<<
  *     if not os.path.exists(filename):
  *         print("Couldn't find image", filename)
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11ps2textures_1decode_ps2_texture, NULL, __pyx_n_s_ps2textures); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_11ps2textures_1decode_ps2_texture, NULL, __pyx_n_s_ps2textures); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_decode_ps2_texture, __pyx_t_1) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_decode_ps2_texture, __pyx_t_1) < 0) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "ps2textures.pyx":78
+  /* "ps2textures.pyx":83
  * 
  * 
  * cdef int *block32 = [             # <<<<<<<<<<<<<<
@@ -4245,7 +4281,7 @@ if (!__Pyx_RefNanny) {
   __pyx_t_3[31] = 31;
   __pyx_v_11ps2textures_block32 = __pyx_t_3;
 
-  /* "ps2textures.pyx":85
+  /* "ps2textures.pyx":90
  * ]
  * 
  * cdef int *columnWord32 = [             # <<<<<<<<<<<<<<
@@ -4270,7 +4306,7 @@ if (!__Pyx_RefNanny) {
   __pyx_t_4[15] = 15;
   __pyx_v_11ps2textures_columnWord32 = __pyx_t_4;
 
-  /* "ps2textures.pyx":129
+  /* "ps2textures.pyx":134
  * 
  * 
  * cdef int *block8 = [             # <<<<<<<<<<<<<<
@@ -4311,14 +4347,14 @@ if (!__Pyx_RefNanny) {
   __pyx_t_5[31] = 31;
   __pyx_v_11ps2textures_block8 = __pyx_t_5;
 
-  /* "ps2textures.pyx":137
+  /* "ps2textures.pyx":142
  * 
  * columnWord8 = [
  *     [             # <<<<<<<<<<<<<<
  *          0,  1,  4,  5,  8,  9, 12, 13,   0,  1,  4,  5,  8,  9, 12, 13,
  *          2,  3,  6,  7, 10, 11, 14, 15,   2,  3,  6,  7, 10, 11, 14, 15,
  */
-  __pyx_t_1 = PyList_New(64); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(64); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
@@ -4513,14 +4549,14 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_int_7);
   PyList_SET_ITEM(__pyx_t_1, 63, __pyx_int_7);
 
-  /* "ps2textures.pyx":144
+  /* "ps2textures.pyx":149
  *         10, 11, 14, 15,  2,  3,  6,  7,  10, 11, 14, 15,  2,  3,  6,  7
  *     ],
  *     [             # <<<<<<<<<<<<<<
  *          8,  9, 12, 13,  0,  1,  4,  5,   8,  9, 12, 13,  0,  1,  4,  5,
  *         10, 11, 14, 15,  2,  3,  6,  7,  10, 11, 14, 15,  2,  3,  6,  7,
  */
-  __pyx_t_6 = PyList_New(64); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 144, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(64); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_INCREF(__pyx_int_8);
   __Pyx_GIVEREF(__pyx_int_8);
@@ -4715,14 +4751,14 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_int_15);
   PyList_SET_ITEM(__pyx_t_6, 63, __pyx_int_15);
 
-  /* "ps2textures.pyx":136
+  /* "ps2textures.pyx":141
  * ]
  * 
  * columnWord8 = [             # <<<<<<<<<<<<<<
  *     [
  *          0,  1,  4,  5,  8,  9, 12, 13,   0,  1,  4,  5,  8,  9, 12, 13,
  */
-  __pyx_t_7 = PyList_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 136, __pyx_L1_error)
+  __pyx_t_7 = PyList_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_7, 0, __pyx_t_1);
@@ -4730,10 +4766,10 @@ if (!__Pyx_RefNanny) {
   PyList_SET_ITEM(__pyx_t_7, 1, __pyx_t_6);
   __pyx_t_1 = 0;
   __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_columnWord8, __pyx_t_7) < 0) __PYX_ERR(0, 136, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_columnWord8, __pyx_t_7) < 0) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "ps2textures.pyx":153
+  /* "ps2textures.pyx":158
  * ]
  * 
  * cdef int *columnByte8 = [             # <<<<<<<<<<<<<<

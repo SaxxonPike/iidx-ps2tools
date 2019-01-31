@@ -75,7 +75,7 @@ class Iidx8thCsHandler:
                         continue
 
                     file_index = (file_index & 0x0fffffff) + 116
-                    file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, common.DIFFICULTY_MAPPING.get(index, str(index))))
+                    file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, common.OLD_DIFFICULTY_MAPPING.get(index, str(index))))
                     file_entries[file_index]['compression'] = common.decode_lz
 
                 sound_pairs = [

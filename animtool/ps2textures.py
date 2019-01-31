@@ -50,9 +50,7 @@ def decode_ps2_texture(filename, width, height, bpp):
     for i in range(0, image_data_len):
         decoded_raw_image += struct.pack("<I", palette_data[palette_idx[image_data[i]]])
 
-    print("%08x" % palette_data[0])
-
-    return bytes(decoded_raw_image), palette_data[0]
+    return bytes(decoded_raw_image)
 
 
 #@profile

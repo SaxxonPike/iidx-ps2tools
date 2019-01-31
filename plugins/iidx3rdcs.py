@@ -73,7 +73,7 @@ class Iidx3rdCsHandler:
                         'size': len(chart_data_buffer) - file_index-0xff000,
                         'compression': common.decode_lz,
                         'real_filename': [
-                            "%s [%s].ply" % (title, common.DIFFICULTY_MAPPING.get(index, str(index)))
+                            "%s [%s].ply" % (title, common.OLD_DIFFICULTY_MAPPING.get(index, str(index)))
                         ],
                         'file_id': len(file_entries)
                     })

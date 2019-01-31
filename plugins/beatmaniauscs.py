@@ -49,7 +49,7 @@ class BeatmaniaUsCsHandler:
 
                     animation_file_entries[main_overlay_file_idx]['real_filename'].append("%s.if" % (title))
 
-                infile.seek(0x2c, 1)
+                infile.seek(0x5c, 1)
                 charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
                 sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
 
@@ -107,7 +107,6 @@ class BeatmaniaUsCsHandler:
 
         common.extract_files(main_archive_file_entries, output_folder)
         common.extract_files(animation_file_entries, output_folder)
-
         common.extract_overlays(animation_file_entries, output_folder, None)
 
 

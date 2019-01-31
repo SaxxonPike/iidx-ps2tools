@@ -429,12 +429,13 @@ class AnimationPs2:
                     else:
                         frames.append(obj)
 
-                # output_filename_webp = output_filename.replace("gif", "webp")
-                # print("Saving WebP render...", output_filename_webp)
-                # frames[0].save(output_filename_webp, format="webp", save_all=True, append_images=frames[1:], loop=0, lossless=True, quality=0, duration=round((1/60)*1000))
+                output_filename_webp = output_filename.replace("gif", "webp")
+                print("Saving WebP render...", output_filename_webp)
+                frames[0].save(output_filename_webp, format="webp", save_all=True, append_images=frames[1:], loop=0, lossless=True, quality=0, duration=round((1/60)*1000))
 
-                print("Saving GIF render...", output_filename)
-                frames[0].save(output_filename, format="gif", save_all=True, append_images=frames[1:], loop=0xffff, lossless=True, quality=0, duration=round((1/60)*1000))
+                # GIF sucks
+                # print("Saving GIF render...", output_filename)
+                # frames[0].save(output_filename, format="gif", save_all=True, append_images=frames[1:], loop=0xffff, lossless=True, quality=0, duration=round((1/60)*1000))
 
                 for frame in frames:
                     frame.close()
