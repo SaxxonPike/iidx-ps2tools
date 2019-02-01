@@ -38,7 +38,7 @@ class Iidx8thCsHandler:
 
                 overlay_idxs = []
 
-                for i in range(0x16 // 4):
+                for _ in range(0x16 // 4):
                     overlay_type, overlay_idx = struct.unpack("<HH", infile.read(4))
 
                     if overlay_type != 0:
@@ -60,6 +60,7 @@ class Iidx8thCsHandler:
 
                     file_entries[file_index]['real_filename'].append("%s [%d].mpg" % (title, index))
                     file_entries[file_index]['song_id'] = i
+                    file_entries[file_index]['title'] = title
 
                 if overlay_idx not in [0xffff, 0x00]:
                     if overlay_idx >= 116:
@@ -73,6 +74,7 @@ class Iidx8thCsHandler:
                         'indexes': overlay_idxs
                     }
                     file_entries[overlay_idx]['song_id'] = i
+                    file_entries[overlay_idx]['title'] = title
 
                 for index, file_index in enumerate(charts_idx):
                     if file_index == 0xffffffff or file_index == 0x00:
@@ -83,6 +85,7 @@ class Iidx8thCsHandler:
                     file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, common.OLD_DIFFICULTY_MAPPING.get(index, str(index))))
                     file_entries[file_index]['compression'] = common.decode_lz
                     file_entries[file_index]['song_id'] = i
+                    file_entries[file_index]['title'] = title
 
                 sound_pairs = [
                     [sounds_idx[0], sounds_idx[2]],
@@ -112,6 +115,7 @@ class Iidx8thCsHandler:
                             file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
                         file_entries[file_index]['song_id'] = i
+                        file_entries[file_index]['title'] = title
 
         return file_entries
 

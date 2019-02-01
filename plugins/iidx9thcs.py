@@ -49,6 +49,7 @@ class Iidx9thCsHandler:
 
                     animation_file_entries[main_overlay_file_idx]['real_filename'].append("%s.if" % (title))
                     animation_file_entries[main_overlay_file_idx]['song_id'] = i
+                    animation_file_entries[main_overlay_file_idx]['title'] = title
 
                 infile.seek(0x5c, 1)
                 charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
@@ -61,6 +62,7 @@ class Iidx9thCsHandler:
 
                     file_entries[file_index]['real_filename'].append("%s [%d].mpg" % (title, index))
                     file_entries[file_index]['song_id'] = i
+                    file_entries[file_index]['title'] = title
 
                 for index, file_index in enumerate(charts_idx):
                     if file_index == 0xffffffff or file_index == 0x00:
@@ -70,6 +72,7 @@ class Iidx9thCsHandler:
                     file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, common.DIFFICULTY_MAPPING.get(index, str(index))))
                     file_entries[file_index]['compression'] = common.decode_lz
                     file_entries[file_index]['song_id'] = i
+                    file_entries[file_index]['title'] = title
 
                 sound_pairs = [
                     [sounds_idx[0], sounds_idx[2]],
@@ -96,6 +99,7 @@ class Iidx9thCsHandler:
                             file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
                         file_entries[file_index]['song_id'] = i
+                        file_entries[file_index]['title'] = title
 
         return file_entries
 

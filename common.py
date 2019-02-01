@@ -151,7 +151,16 @@ def extract_files(file_entries, output_folder, raw_mode, base_file_id=0):
             entry['real_filename'].append("file_%04d.bin" % (entry['file_id'] + base_file_id))
 
         for filename in entry['real_filename']:
-            output_filename = os.path.join(output_folder, get_sanitized_filename(filename))
+            if 'title' in entry and not raw_mode:
+                output_song_folder = os.path.join(output_folder, "%s [%04d]" % (entry['title'], entry['song_id']))
+
+                if not os.path.exists(output_song_folder):
+                    os.makedirs(output_song_folder)
+
+            else:
+                output_song_folder = output_folder
+
+            output_filename = os.path.join(output_song_folder, get_sanitized_filename(filename))
             extract_file(entry['filename'], entry, output_filename)
 
 

@@ -39,7 +39,7 @@ class Iidx4thCsHandler:
 
                 infile.seek(0x0a, 1)
                 overlay_idxs = []
-                for i in range(0x1e // 6):
+                for _ in range(0x1e // 6):
                     overlay_type, overlay_idx, unk = struct.unpack("<HHH", infile.read(6))
 
                     if overlay_type != 0:
@@ -57,9 +57,11 @@ class Iidx4thCsHandler:
                 if video_idx not in [0xffff, 0x00]:
                     file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
                     file_entries[video_idx]['song_id'] = i
+                    file_entries[video_idx]['title'] = title
 
                     file_entries[video_idx+1]['real_filename'].append("%s [1].mpg" % title)
                     file_entries[video_idx+1]['song_id'] = i
+                    file_entries[video_idx+1]['title'] = title
 
                 if overlay_idx not in [0xffff, 0x00]:
                     overlay_filename = "%s.if" % title
@@ -70,6 +72,7 @@ class Iidx4thCsHandler:
                         'indexes': overlay_idxs
                     }
                     file_entries[overlay_idx]['song_id'] = i
+                    file_entries[overlay_idx]['title'] = title
 
                 for index, file_index in enumerate(charts_idx):
                     if file_index == 0xffffffff or file_index == 0x00:
@@ -95,6 +98,7 @@ class Iidx4thCsHandler:
 
                     file_entries[file_index]['real_filename'].append("%s [0-%d].wvb" % (title, index))
                     file_entries[file_index]['song_id'] = i
+                    file_entries[file_index]['title'] = title
 
                 for index, file_index in enumerate(bgms_idx_1):
                     if file_index == 0xffff or file_index == 0x00:
@@ -103,6 +107,7 @@ class Iidx4thCsHandler:
 
                     file_entries[file_index]['real_filename'].append("%s [0-%d].pcm" % (title, index))
                     file_entries[file_index]['song_id'] = i
+                    file_entries[file_index]['title'] = title
 
                 for index, file_index in enumerate(sounds_idx_2):
                     if file_index == 0xffff or file_index == 0x00:
@@ -111,6 +116,7 @@ class Iidx4thCsHandler:
 
                     file_entries[file_index]['real_filename'].append("%s [1-%d].wvb" % (title, index))
                     file_entries[file_index]['song_id'] = i
+                    file_entries[file_index]['title'] = title
 
                 for index, file_index in enumerate(bgms_idx_2):
                     if file_index == 0xffff or file_index == 0x00:
@@ -121,6 +127,7 @@ class Iidx4thCsHandler:
 
                     file_entries[file_index]['real_filename'].append("%s [1-%d].pcm" % (title, index))
                     file_entries[file_index]['song_id'] = i
+                    file_entries[file_index]['title'] = title
 
         return file_entries
 

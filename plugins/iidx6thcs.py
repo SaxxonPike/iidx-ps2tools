@@ -41,7 +41,7 @@ class Iidx6thCsHandler:
 
                 infile.seek(0x0c, 1)
                 overlay_idxs = []
-                for i in range(0x16 // 4):
+                for _ in range(0x16 // 4):
                     overlay_type, overlay_idx = struct.unpack("<HH", infile.read(4))
 
                     if overlay_type != 0:
@@ -62,14 +62,17 @@ class Iidx6thCsHandler:
                         'indexes': overlay_idxs
                     }
                     file_entries[overlay_idx]['song_id'] = i
+                    file_entries[overlay_idx]['title'] = title
 
                 if video_idx not in [0xffff, 0x00]:
                     file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
                     file_entries[video_idx]['song_id'] = i
+                    file_entries[video_idx]['title'] = title
 
                 if video_idx2 not in [0xffff, 0x00]:
                     file_entries[video_idx2]['real_filename'].append("%s [1].mpg" % title)
                     file_entries[video_idx2]['song_id'] = i
+                    file_entries[video_idx2]['title'] = title
 
                 for index, file_index in enumerate(charts_idx):
                     if file_index == 0xffffffff or file_index == 0x00:
@@ -113,6 +116,7 @@ class Iidx6thCsHandler:
                             file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
                         file_entries[file_index]['song_id'] = i
+                        file_entries[file_index]['title'] = title
 
         return file_entries
 
