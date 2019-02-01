@@ -20,7 +20,7 @@ class BeatmaniaUsCsHandler:
             for i in range(songlist_count):
                 infile.seek(songlist_offset + i * 0x174, 0)
 
-                title = infile.read(0x40).decode('shift-jis').strip('\0')
+                title = infile.read(0x40).decode('shift-jis').strip('\0').strip()
 
                 if len(title) == 0:
                     title = "%d" % i
@@ -97,7 +97,7 @@ class BeatmaniaUsCsHandler:
 
 
     @staticmethod
-    def extract(exe_filename, input_folder, output_folder):
+    def extract(exe_filename, input_folder, output_folder, raw_mode, conversion_mode):
         main_archive_file_entries = []
         main_archive_file_entries += filetable_readers.filetable_reader_modern(exe_filename, os.path.join(input_folder, "DATA2.DAT"), 0xba710, 0x1230 // 8, len(main_archive_file_entries))
 
@@ -105,7 +105,7 @@ class BeatmaniaUsCsHandler:
 
         BeatmaniaUsCsHandler.read_songlist(exe_filename, 0xbf510, 0x6a14 // 0x174, main_archive_file_entries, animation_file_entries)
 
-        common.extract_files(main_archive_file_entries, output_folder)
+        common.extract_files(main_archive_file_entries, output_folder, raw_mode)
         common.extract_files(animation_file_entries, output_folder)
         common.extract_overlays(animation_file_entries, output_folder, None)
 

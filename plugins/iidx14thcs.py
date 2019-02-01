@@ -56,7 +56,7 @@ class Iidx14thCsHandler:
             for i in range(songlist_count):
                 infile.seek(songlist_offset + i * 0x11c, 0)
 
-                title = infile.read(0x40).decode('shift-jis').strip('\0')
+                title = infile.read(0x40).decode('shift-jis').strip('\0').strip()
 
                 if len(title) == 0:
                     title = "%d" % i
@@ -84,6 +84,7 @@ class Iidx14thCsHandler:
                         animation_file_entries[main_overlay_file_idx]['overlays_new'] = overlays
 
                     animation_file_entries[main_overlay_file_idx]['real_filename'].append("%s.if" % (title))
+                    animation_file_entries[main_overlay_file_idx]['song_id'] = i
 
                 infile.seek(0x14, 1)
                 charts_idx = struct.unpack("<IIIIIIIIII", infile.read(0x28)) # 28??
@@ -95,6 +96,7 @@ class Iidx14thCsHandler:
                         continue
 
                     file_entries[file_index]['real_filename'].append("%s [%d].mpg" % (title, index))
+                    file_entries[file_index]['song_id'] = i
 
                 for index, file_index in enumerate(charts_idx):
                     if file_index == 0xffffffff or file_index == 0x00:
@@ -104,6 +106,7 @@ class Iidx14thCsHandler:
                     file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, common.DIFFICULTY_MAPPING.get(index, str(index))))
                     file_entries[file_index]['encryption'] = Iidx14thCsHandler.generate_encryption_key()
                     file_entries[file_index]['compression'] = common.decode_lz
+                    file_entries[file_index]['song_id'] = i
 
                 sound_pairs = [
                     [sounds_idx[0], sounds_idx[2]],
@@ -129,11 +132,13 @@ class Iidx14thCsHandler:
                         else:
                             file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
+                        file_entries[file_index]['song_id'] = i
+
         return file_entries
 
 
     @staticmethod
-    def extract(exe_filename, input_folder, output_folder):
+    def extract(exe_filename, input_folder, output_folder, raw_mode, conversion_mode):
         main_archive_file_entries = []
         main_archive_file_entries += filetable_readers.filetable_reader_modern2(exe_filename, os.path.join(input_folder, "bm2dx14a.dat"), 0x11ad60, 0x248 // 12, len(main_archive_file_entries))
         main_archive_file_entries += filetable_readers.filetable_reader_modern2(exe_filename, os.path.join(input_folder, "bm2dx14b.dat"), 0x11afa0, 0x26ac // 12, len(main_archive_file_entries))
@@ -143,8 +148,8 @@ class Iidx14thCsHandler:
 
         Iidx14thCsHandler.read_songlist(exe_filename, 0x156300, 0x76b4 // 0x11c, main_archive_file_entries, animation_file_entries)
 
-        common.extract_files(main_archive_file_entries, output_folder)
-        common.extract_files(animation_file_entries, output_folder, len(main_archive_file_entries))
+        common.extract_files(main_archive_file_entries, output_folder, raw_mode)
+        common.extract_files(animation_file_entries, output_folder, raw_mode, conversion_mode, len(main_archive_file_entries))
         common.extract_overlays(animation_file_entries, output_folder, None)
 
 

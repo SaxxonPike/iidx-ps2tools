@@ -25,6 +25,9 @@ class Iidx7thCsHandler:
                 internal_title = common.read_string(infile, internal_title_offset - 0xfff80)
                 title = common.read_string(infile, title_offset - 0xfff80)
 
+                if len(title) == 0:
+                    title = "%d" % i
+
                 infile.seek(0x12, 1)
                 video_idx = struct.unpack("<H", infile.read(2))[0]
 
@@ -58,6 +61,7 @@ class Iidx7thCsHandler:
                         video_idx += 138
 
                     file_entries[video_idx]['real_filename'].append("%s.mpg" % title)
+                    file_entries[video_idx]['song_id'] = i
 
                 if overlay_idx not in [0xffff, 0x00]:
                     if overlay_idx >= 138:
@@ -70,6 +74,7 @@ class Iidx7thCsHandler:
                         'palette': overlay_palette,
                         'indexes': overlay_idxs
                     }
+                    file_entries[overlay_idx]['song_id'] = i
 
                 for index, file_index in enumerate(charts_idx):
                     if file_index == 0xffffffff or file_index == 0x00:
@@ -80,6 +85,7 @@ class Iidx7thCsHandler:
                     print("file index: %d" % file_index)
                     file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, common.OLD_DIFFICULTY_MAPPING.get(index, str(index))))
                     file_entries[file_index]['compression'] = common.decode_lz
+                    file_entries[file_index]['song_id'] = i
 
                 sound_pairs = [
                     [sounds_idx[0], sounds_idx[2]],
@@ -108,11 +114,13 @@ class Iidx7thCsHandler:
                         else:
                             file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
+                        file_entries[file_index]['song_id'] = i
+
         return file_entries
 
 
     @staticmethod
-    def extract(exe_filename, input_folder, output_folder):
+    def extract(exe_filename, input_folder, output_folder, raw_mode, conversion_mode):
         main_archive_file_entries = []
         main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_7", "BM2DX7B.BIN"), 0x1b7460, 0x8a0 // 16, len(main_archive_file_entries))
         main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_7", "BM2DX7C.BIN"), 0x1b9a30, 0x2bc0 // 16, len(main_archive_file_entries))
@@ -120,7 +128,7 @@ class Iidx7thCsHandler:
 
         Iidx7thCsHandler.read_songlist(exe_filename, 0x1c1af0, 0x3840 // 0xa0, main_archive_file_entries)
 
-        common.extract_files(main_archive_file_entries, output_folder)
+        common.extract_files(main_archive_file_entries, output_folder, raw_mode)
 
         common.extract_overlays(main_archive_file_entries, output_folder, { # 7th
             'base_offset': 0xfff80,

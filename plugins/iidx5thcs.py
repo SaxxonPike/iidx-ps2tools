@@ -27,6 +27,9 @@ class Iidx5thCsHandler:
                 internal_title = common.read_string(infile, internal_title_offset - 0xff000)
                 title = common.read_string(infile, title_offset - 0xff000)
 
+                if len(title) == 0:
+                    title = "%d" % i
+
                 infile.seek(0x0a, 1)
                 video_idx = struct.unpack("<H", infile.read(2))[0]
                 video_idx2 = video_idx + 1
@@ -50,7 +53,10 @@ class Iidx5thCsHandler:
 
                 if video_idx not in [0xffff, 0x00]:
                     file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
+                    file_entries[video_idx]['song_id'] = i
+
                     file_entries[video_idx+1]['real_filename'].append("%s [1].mpg" % title)
+                    file_entries[video_idx+1]['song_id'] = i
 
                 if overlay_idx not in [0xffff, 0x00]:
                     overlay_filename = "%s.if" % title
@@ -60,6 +66,7 @@ class Iidx5thCsHandler:
                         'palette': overlay_palette,
                         'indexes': overlay_idxs
                     }
+                    file_entries[overlay_idx]['song_id'] = i
 
                 for index, file_index in enumerate(charts_idx):
                     if file_index == 0xffffffff or file_index == 0x00:
@@ -74,7 +81,8 @@ class Iidx5thCsHandler:
                         'real_filename': [
                             "%s [%s].ply" % (title, common.OLD_DIFFICULTY_MAPPING.get(index, str(index)))
                         ],
-                        'file_id': len(file_entries)
+                        'file_id': len(file_entries),
+                        'song_id': i,
                     })
 
                 sound_pairs = [
@@ -101,17 +109,19 @@ class Iidx5thCsHandler:
                         else:
                             file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
 
+                        file_entries[file_index]['song_id'] = i
+
         return file_entries
 
 
     @staticmethod
-    def extract(exe_filename, input_folder, output_folder):
+    def extract(exe_filename, input_folder, output_folder, raw_mode, conversion_mode):
         main_archive_file_entries = []
         main_archive_file_entries += filetable_readers.filetable_reader_old2(exe_filename, os.path.join(input_folder, "DX2_5", "BM2DX5.BIN"), 0x1837d8, 0x1230 // 16, len(main_archive_file_entries))
 
         Iidx5thCsHandler.read_songlist(exe_filename, 0xae520, 0x5af6 // 0xa4, main_archive_file_entries)
 
-        common.extract_files(main_archive_file_entries, output_folder)
+        common.extract_files(main_archive_file_entries, output_folder, raw_mode)
 
         common.extract_overlays(main_archive_file_entries, output_folder, { # 5th
             'base_offset': 0xff000,

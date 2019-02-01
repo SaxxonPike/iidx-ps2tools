@@ -19,7 +19,7 @@ class Iidx10thCsHandler:
 
 
     @staticmethod
-    def extract(exe_filename, input_folder, output_folder):
+    def extract(exe_filename, input_folder, output_folder, raw_mode, conversion_mode):
         main_archive_file_entries = []
         main_archive_file_entries += filetable_readers.filetable_reader_modern(exe_filename, os.path.join(input_folder, "DATA2.DAT"), 0xcdc90, 0x1a38 // 8, len(main_archive_file_entries))
 
@@ -27,8 +27,8 @@ class Iidx10thCsHandler:
 
         Iidx10thCsHandler.read_songlist(exe_filename, 0x10bae0, 0x7d20 // 0x16c, main_archive_file_entries, animation_file_entries)
 
-        common.extract_files(main_archive_file_entries, output_folder)
-        common.extract_files(animation_file_entries, output_folder, len(main_archive_file_entries))
+        common.extract_files(main_archive_file_entries, output_folder, raw_mode)
+        common.extract_files(animation_file_entries, output_folder, raw_mode, conversion_mode, len(main_archive_file_entries))
         common.extract_overlays(animation_file_entries, output_folder, None)
 
 

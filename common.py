@@ -119,6 +119,10 @@ def read_string(infile, offset):
 
 
 def extract_file(filename, entry, output_filename):
+    if os.path.exists(output_filename):
+        base_filename, ext = os.path.splitext(output_filename)
+        output_filename = "%s [%04x]%s" % (base_filename, entry['file_id'], ext)
+
     print("Extracting", output_filename)
 
     with open(filename, "rb") as infile:
@@ -135,11 +139,14 @@ def extract_file(filename, entry, output_filename):
             outfile.write(data)
 
 
-def extract_files(file_entries, output_folder, base_file_id=0):
+def extract_files(file_entries, output_folder, raw_mode, base_file_id=0):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
     for entry in file_entries[::]:
+        if raw_mode:
+            entry['real_filename'] = []
+
         if not entry['real_filename']:
             entry['real_filename'].append("file_%04d.bin" % (entry['file_id'] + base_file_id))
 
