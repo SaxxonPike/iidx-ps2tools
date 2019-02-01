@@ -205,7 +205,7 @@ def get_animation_info(filename):
                     'zooms': zooms,
                     'fades': fades,
                     'rotations': rotations,
-                    'opacity': opacity / 100,
+                    'opacity': opacity / 100 if opacity <= 100 else 1.0,
                     'x': sprite_x,
                     'y': sprite_y,
                     'start_frame': start_frame,
