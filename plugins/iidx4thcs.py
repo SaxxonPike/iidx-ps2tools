@@ -14,6 +14,8 @@ class Iidx4thCsHandler:
 
     @staticmethod
     def read_songlist(executable_filename, songlist_offset, songlist_count, file_entries):
+        song_metadata = {}
+
         with open(executable_filename, "rb") as infile:
             chart_data_buffer = infile.read()
 
@@ -27,12 +29,18 @@ class Iidx4thCsHandler:
                 internal_title = common.read_string(infile, internal_title_offset - 0xff000)
                 title = common.read_string(infile, title_offset - 0xff000)
 
+                infile.seek(0x01, 1)
+                difficulties = struct.unpack("<BB", infile.read(2))
+
                 if len(title) == 0:
                     title = "%d" % i
 
-                infile.seek(0x06, 1)
+                infile.seek(0x03, 1)
                 video_idx = struct.unpack("<H", infile.read(2))[0]
-                video_idx2 = video_idx + 1
+                videos_idx = [video_idx]
+
+                if video_idx != 0xffff:
+                    videos_idx.append(video_idx+1)
 
                 infile.seek(0x1c, 1)
                 overlay_palette = struct.unpack("<H", infile.read(2))[0]
@@ -48,24 +56,100 @@ class Iidx4thCsHandler:
                 infile.seek(0x02, 1)
 
                 charts_idx = struct.unpack("<IIIIII", infile.read(0x18))
-                sounds_idx_1 = struct.unpack("<HH", infile.read(0x04))
-                bgms_idx_1 = struct.unpack("<HHHHHH", infile.read(0x0c))
-                sounds_idx_2 = struct.unpack("<HH", infile.read(0x04))
-                bgms_idx_2 = struct.unpack("<HH", infile.read(0x04))
+                sounds_idx = struct.unpack("<HHHHHHHHHHHH", infile.read(0x18))
                 overlay_idx = struct.unpack("<H", infile.read(0x02))[0]
 
-                if video_idx not in [0xffff, 0x00]:
-                    file_entries[video_idx]['real_filename'].append("%s [0].mpg" % title)
-                    file_entries[video_idx]['song_id'] = i
-                    file_entries[video_idx]['title'] = title
+                package_metadata = {
+                    'song_id': i,
+                    'title': title,
+                    'title_ascii': internal_title,
+                    'charts': {
+                        'sp_beginner': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[1] if difficulties[1] != 0 else None,
+                        },
+                        'sp_normal': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[1] if difficulties[1] != 0 else None,
+                        },
+                        'sp_hyper': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[0] if difficulties[0] != 0 else None,
+                        },
+                        'sp_another': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[0] if difficulties[0] != 0 else None,
+                        },
+                        'sp_black': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[0] if difficulties[0] != 0 else None,
+                        },
+                        'dp_beginner': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[1] if difficulties[1] != 0 else None,
+                        },
+                        'dp_normal': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[1] if difficulties[1] != 0 else None,
+                        },
+                        'dp_hyper': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[0] if difficulties[0] != 0 else None,
+                        },
+                        'dp_another': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[0] if difficulties[0] != 0 else None,
+                        },
+                        'dp_black': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[0] if difficulties[0] != 0 else None,
+                        },
+                    },
+                    'videos': [],
+                    'overlays': None,
+                }
 
-                    file_entries[video_idx+1]['real_filename'].append("%s [1].mpg" % title)
-                    file_entries[video_idx+1]['song_id'] = i
-                    file_entries[video_idx+1]['title'] = title
+                for index, file_index in enumerate(videos_idx):
+                    if file_index == 0xffff:
+                        # Invalid
+                        continue
+
+                    for index2, file_index2 in enumerate(videos_idx):
+                        if index2 != index and file_index2 == file_index:
+                            index = index2
+                            break
+
+                    file_entries[file_index]['entries'] = i
+                    file_entries[file_index]['references'].append({
+                        'filename': "%s [%d].mpg" % (title, index),
+                        'song_id': i,
+                        'title': title
+                    })
+
+                    package_metadata['videos'].append("%s [%d].mpg" % (title, index))
 
                 if overlay_idx not in [0xffff, 0x00]:
                     overlay_filename = "%s.if" % title
-                    file_entries[overlay_idx]['real_filename'].append(overlay_filename)
                     file_entries[overlay_idx]['overlays'] = {
                         'exe': executable_filename,
                         'palette': overlay_palette,
@@ -73,9 +157,16 @@ class Iidx4thCsHandler:
                     }
                     file_entries[overlay_idx]['song_id'] = i
                     file_entries[overlay_idx]['title'] = title
+                    file_entries[overlay_idx]['references'].append({
+                        'filename': overlay_filename,
+                        'song_id': i,
+                        'title': title
+                    })
+
+                    package_metadata['overlays'] = overlay_filename
 
                 for index, file_index in enumerate(charts_idx):
-                    if file_index == 0xffffffff or file_index == 0x00:
+                    if file_index == 0xffffffff or file_index == 0:
                         # Invalid
                         continue
 
@@ -84,52 +175,60 @@ class Iidx4thCsHandler:
                         'offset': file_index-0xff000,
                         'size': len(chart_data_buffer) - file_index-0xff000,
                         'compression': common.decode_lz,
-                        'real_filename': [
-                            "%s [%s].ply" % (title, common.OLD_DIFFICULTY_MAPPING.get(index, str(index)))
-                        ],
-                        'file_id': len(file_entries),
-                        'song_id': i,
+                        'references': [{
+                            'filename': "%s [%s].ply" % (title, common.DIFFICULTY_MAPPING.get(index, str(index))),
+                            'song_id': i,
+                            'title': title
+                        }]
                     })
 
-                for index, file_index in enumerate(sounds_idx_1):
-                    if file_index == 0xffff or file_index == 0x00:
-                        # Invalid
-                        continue
+                    package_metadata['charts'][common.DIFFICULTY_MAPPING.get(index, str(index)).lower().replace(" ", "_")]['filename'] = "%s [%s].ply" % (title, common.DIFFICULTY_MAPPING.get(index, str(index)))
 
-                    file_entries[file_index]['real_filename'].append("%s [0-%d].wvb" % (title, index))
-                    file_entries[file_index]['song_id'] = i
-                    file_entries[file_index]['title'] = title
+                sound_pairs = [
+                    [sounds_idx[0], sounds_idx[2]],
+                    [sounds_idx[1], sounds_idx[3]],
+                    [sounds_idx[4], sounds_idx[6]],
+                    [sounds_idx[5], sounds_idx[7]],
+                    [sounds_idx[8], sounds_idx[10]],
+                    [sounds_idx[9], sounds_idx[11]],
+                ]
 
-                for index, file_index in enumerate(bgms_idx_1):
-                    if file_index == 0xffff or file_index == 0x00:
-                        # Invalid
-                        continue
+                for pair_index, pair in enumerate(sound_pairs):
+                    for index, file_index in enumerate(pair):
+                        is_keysound = index == 0
 
-                    file_entries[file_index]['real_filename'].append("%s [0-%d].pcm" % (title, index))
-                    file_entries[file_index]['song_id'] = i
-                    file_entries[file_index]['title'] = title
+                        if file_index == 0xffff:
+                            # Invalid
+                            continue
 
-                for index, file_index in enumerate(sounds_idx_2):
-                    if file_index == 0xffff or file_index == 0x00:
-                        # Invalid
-                        continue
+                        print(file_index)
 
-                    file_entries[file_index]['real_filename'].append("%s [1-%d].wvb" % (title, index))
-                    file_entries[file_index]['song_id'] = i
-                    file_entries[file_index]['title'] = title
+                        for pair_index2, pair2 in enumerate(sound_pairs):
+                            if pair_index2 != pair_index and pair2[1] == pair[0]:
+                                pair_index = pair_index2
+                                break
 
-                for index, file_index in enumerate(bgms_idx_2):
-                    if file_index == 0xffff or file_index == 0x00:
-                        # Invalid
-                        continue
+                        if is_keysound:
+                            file_entries[file_index]['references'].append({
+                                'filename': "%s [%d].wvb" % (title, pair_index),
+                                'song_id': i,
+                                'title': title
+                            })
 
-                    print("%08x" % infile.tell(), file_index, len(file_entries))
+                            package_metadata['charts'][common.DIFFICULTY_MAPPING.get(pair_index, str(pair_index)).lower().replace(" ", "_")]['sounds'] = "%s [%d].wvb" % (title, pair_index)
 
-                    file_entries[file_index]['real_filename'].append("%s [1-%d].pcm" % (title, index))
-                    file_entries[file_index]['song_id'] = i
-                    file_entries[file_index]['title'] = title
+                        else:
+                            file_entries[file_index]['references'].append({
+                                'filename': "%s [%d].pcm" % (title, pair_index),
+                                'song_id': i,
+                                'title': title
+                            })
 
-        return file_entries
+                            package_metadata['charts'][common.DIFFICULTY_MAPPING.get(pair_index, str(pair_index)).lower().replace(" ", "_")]['bgm'] = "%s [%d].pcm" % (title, pair_index)
+
+                song_metadata[i] = package_metadata
+
+        return file_entries, song_metadata
 
 
     @staticmethod
@@ -137,9 +236,12 @@ class Iidx4thCsHandler:
         main_archive_file_entries = []
         main_archive_file_entries += filetable_readers.filetable_reader_old(exe_filename, os.path.join(input_folder, "DX2_4", "BM2DX4.BIN"), 0x137450, 0x9d8 // 12, len(main_archive_file_entries))
 
-        Iidx4thCsHandler.read_songlist(exe_filename, 0x8bc98, 0x2010 // 0x90, main_archive_file_entries)
+        _, song_metadata = Iidx4thCsHandler.read_songlist(exe_filename, 0x8bc98, 0x2010 // 0x90, main_archive_file_entries)
 
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
+
+        if conversion_mode and not raw_mode:
+            common.extract_songs(main_archive_file_entries, output_folder, '4thcs', song_metadata)
 
         common.extract_overlays(main_archive_file_entries, output_folder, { # 4th
             'base_offset': 0xff000,

@@ -1,24 +1,17 @@
+import json
 import os
+import queue
+import threading
 
 import blowfish
 
 import ps2overlay
 
 from animtool.animation_ps2 import AnimationPs2
+import iidxtool
+import parse_wvb
 
 DIFFICULTY_MAPPING = {
-    0: 'SP NORMAL',
-    1: 'DP NORMAL',
-    2: 'SP HYPER',
-    3: 'DP HYPER',
-    4: 'SP ANOTHER',
-    5: 'DP ANOTHER',
-    6: 'SP BEGINNER',
-    7: 'DP BLACK',
-    8: 'DP BLACK',
-}
-
-OLD_DIFFICULTY_MAPPING = {
     0: 'SP HYPER',
     1: 'DP HYPER',
     2: 'SP ANOTHER',
@@ -26,9 +19,30 @@ OLD_DIFFICULTY_MAPPING = {
     4: 'SP NORMAL',
     5: 'DP NORMAL',
     6: 'SP BEGINNER',
-    7: 'SP BLACK',
-    8: 'DP BLACK',
+    7: 'DP BEGINNER',
+    8: 'SP BLACK',
+    9: 'DP BLACK',
 }
+
+def process_queue(queue_data, thread_worker, num_threads):
+    if queue_data.qsize() == 0:
+        return
+
+    threads = []
+
+    for _ in range(num_threads):
+        thread = threading.Thread(target=thread_worker)
+        thread.start()
+        threads.append(thread)
+
+    queue_data.join()
+
+    for _ in range(num_threads):
+        queue_data.put(None)
+
+    for thread in threads:
+        thread.join()
+
 
 def decode_lz(input_data):
     # Based on decompression code from IIDX GOLD CS
@@ -93,6 +107,9 @@ def decrypt_blowfish(data, key):
 
 
 def get_sanitized_filename(filename, invalid_chars='<>:;\"\\/|?*'):
+    if not filename:
+        return filename
+
     for c in invalid_chars:
         filename = filename.replace(c, "_")
 
@@ -115,7 +132,7 @@ def read_string(infile, offset):
 
     infile.seek(cur_offset)
 
-    return b"".join(string).decode('shift-jis')
+    return b"".join(string).decode('euc-jp')
 
 
 def extract_file(filename, entry, output_filename):
@@ -145,14 +162,16 @@ def extract_files(file_entries, output_folder, raw_mode, base_file_id=0):
 
     for entry in file_entries[::]:
         if raw_mode:
-            entry['real_filename'] = []
+            entry['references'] = []
 
-        if not entry['real_filename']:
-            entry['real_filename'].append("file_%04d.bin" % (entry['file_id'] + base_file_id))
+        if not entry['references']:
+            entry['references'].append({
+                'filename': "file_%04d.bin" % (entry['file_id'] + base_file_id),
+            })
 
-        for filename in entry['real_filename']:
-            if 'title' in entry and not raw_mode:
-                output_song_folder = os.path.join(output_folder, "%s [%04d]" % (entry['title'], entry['song_id']))
+        for reference in entry['references']:
+            if 'title' in reference and not raw_mode:
+                output_song_folder = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])))
 
                 if not os.path.exists(output_song_folder):
                     os.makedirs(output_song_folder)
@@ -160,7 +179,7 @@ def extract_files(file_entries, output_folder, raw_mode, base_file_id=0):
             else:
                 output_song_folder = output_folder
 
-            output_filename = os.path.join(output_song_folder, get_sanitized_filename(filename))
+            output_filename = os.path.join(output_song_folder, get_sanitized_filename(reference['filename']))
             extract_file(entry['filename'], entry, output_filename)
 
 
@@ -169,20 +188,32 @@ def extract_overlays(file_entries, output_folder, overlay_exe_offsets):
         os.makedirs(output_folder)
 
     for entry in file_entries[::]:
-        if not entry['real_filename']:
-            entry['real_filename'].append("file_%04d.bin" % entry['file_id'])
+        if not entry['references']:
+            entry['references'].append({
+                'filename': "file_%04d.bin" % (entry['file_id']),
+            })
 
-        for filename in entry['real_filename']:
-            input_filename = os.path.join(output_folder, get_sanitized_filename(filename))
+        for reference in entry['references']:
+            if 'title' not in reference or 'song_id' not in reference:
+                continue
+
+            input_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), get_sanitized_filename(reference['filename']))
 
             if not os.path.exists(input_filename):
                 continue
 
             if entry.get('overlays', None) is not None:
+                ifs_filenames = []
+
                 for overlay_idx in entry['overlays']['indexes']:
-                    ifs_filename = os.path.join(output_folder, get_sanitized_filename(filename))
-                    output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04x]" % (ifs_filename.replace(".if", ""), overlay_idx)))
+                    ifs_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), get_sanitized_filename(reference['filename']))
+                    output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), get_sanitized_filename("%s [%04x]" % (reference['title'], overlay_idx)))
                     ps2overlay.extract_overlay(entry['overlays']['exe'], ifs_filename, entry['overlays']['palette'], overlay_idx, output_filename, overlay_exe_offsets)
+
+                    ifs_filenames.append(ifs_filename)
+
+                for ifs_filename in ifs_filenames:
+                    ps2overlay.clear_cache(ifs_filename)
 
             if entry.get('overlays_new', None) is not None:
                 animation_id = []
@@ -190,8 +221,206 @@ def extract_overlays(file_entries, output_folder, overlay_exe_offsets):
                 for overlay in entry['overlays_new']:
                     animation_id.append(overlay['animation_id'])
 
-                ifs_filename = os.path.join(output_folder, get_sanitized_filename(filename))
-                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04x]" % (filename.replace(".if", ""), overlay['overlay_idx'])))
+                ifs_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), get_sanitized_filename(reference['filename']))
+                output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), get_sanitized_filename("%s [%04x]" % (reference['title'], overlay['overlay_idx'])))
 
                 animparser = AnimationPs2(ifs_filename, 8, False)
                 animparser.render(animation_id, output_filename, False)
+
+
+def extract_songs(file_entries, output_folder, chart_format, song_metadata):
+    # Extract audio and charts for songs
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    charts_by_song = {}
+
+    def thread_worker():
+        while True:
+            item = queue_data.get()
+
+            if item is None:
+                break
+
+            reference = item
+
+            if 'title' in reference:
+                output_song_folder = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])))
+
+                if not os.path.exists(output_song_folder):
+                    os.makedirs(output_song_folder)
+
+            else:
+                output_song_folder = output_folder
+
+            output_filename = os.path.join(output_song_folder, get_sanitized_filename(reference['filename']))
+            base_filename = os.path.splitext(os.path.basename(output_filename))[0]
+
+            if output_filename.endswith(".wvb"):
+                # Wavebank/keysound file
+                input_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), get_sanitized_filename(reference['filename']))
+
+                t = "%s" % base_filename
+                if not t.strip():
+                    t = get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id']))
+
+                output_song_folder = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), t)
+
+                parse_wvb.parse_wvb(input_filename, output_song_folder)
+
+            elif output_filename.endswith(".pcm"):
+                # PCM BGM file
+                input_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), get_sanitized_filename(reference['filename']))
+
+                t = "%s" % base_filename
+                if not t.strip():
+                    t = get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id']))
+
+                output_song_folder = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), t)
+                output_filename = os.path.join(output_song_folder, "0001.wav")
+
+                parse_wvb.convert_vgmstream(input_filename, output_filename)
+
+            elif output_filename.endswith(".ply"):
+                # Chart file
+                # This is a lazy way to do this since I still haven't 100% mapped the difficulties at the time of writing.
+                # A future TODO: Refactor this code
+                if reference['song_id'] not in charts_by_song:
+                    charts_by_song[reference['song_id']] = {
+                        'title': reference['title'],
+                        'charts': {
+                            'input_sp_beginner': None,
+                            'input_sp_normal': None,
+                            'input_sp_hyper': None,
+                            'input_sp_another': None,
+                            'input_sp_black': None,
+                            'input_dp_beginner': None,
+                            'input_dp_normal': None,
+                            'input_dp_hyper': None,
+                            'input_dp_another': None,
+                            'input_dp_black': None,
+                        },
+                        'package': song_metadata[reference['song_id']] if reference['song_id'] in song_metadata else None,
+                    }
+
+                for part in ['sp', 'dp']:
+                    for difficulty in ['beginner', 'normal', 'hyper', 'another']:
+                        if "[%s %s]" % (part.upper(), difficulty.upper()) in output_filename:
+                            charts_by_song[reference['song_id']]['charts']['input_%s_%s' % (part, difficulty)] = output_filename
+
+            queue_data.task_done()
+
+    queue_data = queue.Queue()
+    used_references = []
+    for entry in file_entries[::]:
+        for reference in entry['references']:
+            if 'title' not in reference:
+                continue
+
+            if reference['filename'].endswith(".pcm"):
+                continue
+
+            if reference in used_references:
+                continue
+
+            used_references.append(reference)
+
+            queue_data.put(reference)
+
+            # Because creating the folders in the threads causes issues when the same song gets processed at the same time...
+            output_song_folder = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])))
+            output_filename = os.path.join(output_song_folder, get_sanitized_filename(reference['filename']))
+            base_filename = os.path.splitext(os.path.basename(output_filename))[0]
+
+            if output_filename.endswith(".wvb") or output_filename.endswith(".pcm"):
+                # Wavebank/keysound file
+                input_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), get_sanitized_filename(reference['filename']))
+
+                t = "%s" % base_filename
+                if not t.strip():
+                    t = get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id']))
+
+                output_song_folder = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (reference['title'], reference['song_id'])), t)
+
+                if not os.path.exists(output_song_folder):
+                    os.makedirs(output_song_folder)
+
+    process_queue(queue_data, thread_worker, 4)
+
+    queue_data = queue.Queue()
+    used_references = []
+    for entry in file_entries[::]:
+        for reference in entry['references']:
+            if 'title' not in reference:
+                continue
+
+            if not reference['filename'].endswith(".pcm"):
+                continue
+
+            if reference in used_references:
+                continue
+
+            queue_data.put(reference)
+
+    process_queue(queue_data, thread_worker, 4)
+
+    for k in charts_by_song:
+        song = charts_by_song[k]
+
+        output_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (song['title'], k)), get_sanitized_filename("%s.json" % song['title']))
+        metadata_filename = os.path.join(output_folder, get_sanitized_filename("%s [%04d]" % (song['title'], k)), "metadata.json")
+
+        package_metadata = song['package']
+
+        if package_metadata:
+            package_metadata['format'] = chart_format
+
+            for k in ['sounds', 'bgm']:
+                if 'dp_hyper' in package_metadata['charts'] and package_metadata['charts']['dp_hyper'][k]:
+                    # Use DP Hyper sounds for missing charts DP charts
+                    for k2 in ['dp_beginner', 'dp_normal', 'dp_another', 'dp_black']:
+                        if k2 not in package_metadata['charts']:
+                            continue
+
+                        if not package_metadata['charts'][k2]['filename']:
+                            del package_metadata['charts'][k2]
+                            continue
+
+                        if not package_metadata['charts'][k2][k]:
+                            package_metadata['charts'][k2][k] = package_metadata['charts']['dp_hyper'][k]
+
+                if 'sp_hyper' in package_metadata['charts'] and package_metadata['charts']['sp_hyper'][k]:
+                    # Use SP Hyper sounds for remaining missing charts
+                    for k2 in ['sp_beginner', 'sp_normal', 'sp_another', 'sp_black', 'dp_beginner', 'dp_normal', 'dp_hyper', 'dp_another', 'dp_black']:
+                        if k2 not in package_metadata['charts']:
+                            continue
+
+                        if not package_metadata['charts'][k2]['filename']:
+                            del package_metadata['charts'][k2]
+                            continue
+
+                        if not package_metadata['charts'][k2][k]:
+                            package_metadata['charts'][k2][k] = package_metadata['charts']['sp_hyper'][k]
+
+            for k in ['sounds', 'bgm', 'filename']:
+                for k2 in ['sp_beginner', 'sp_normal', 'sp_another', 'sp_black', 'dp_beginner', 'dp_normal', 'dp_hyper', 'dp_another', 'dp_black']:
+                    if k2 in package_metadata['charts']:
+                        if k in package_metadata['charts'][k2]:
+                            package_metadata['charts'][k2][k] = get_sanitized_filename(package_metadata['charts'][k2][k])
+
+            if 'videos' in package_metadata:
+                package_metadata['videos'] = [get_sanitized_filename(filename) for filename in package_metadata['videos']]
+
+            if 'overlays' in package_metadata:
+                package_metadata['overlays'] = get_sanitized_filename(package_metadata['overlays'])
+
+            json.dump(package_metadata, open(metadata_filename, "w"), indent=4, ensure_ascii=False)
+
+        iidxtool.process_file({
+            'input': None,
+            'input_format': chart_format,
+            'output': output_filename,
+            'output_format': 'json',
+            'input_charts': song['charts'],
+            'output_charts': {},
+        })

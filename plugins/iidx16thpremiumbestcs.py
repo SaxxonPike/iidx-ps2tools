@@ -22,10 +22,14 @@ class Iidx16thPremiumBestCsHandler:
 
         animation_file_entries = filetable_readers.dat_filetable_reader_modern(exe_filename, os.path.join(input_folder, "data1.dat"), 0x139980, 0x5bd0 // 16)
 
-        Iidx16thEmpressCsHandler.read_songlist(exe_filename, 0x17e0f0, 0x7850 // 0x134, main_archive_file_entries, animation_file_entries)
+        _, song_metadata = Iidx16thEmpressCsHandler.read_songlist(exe_filename, 0x17e0f0, 0x7850 // 0x134, main_archive_file_entries, animation_file_entries)
 
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
-        common.extract_files(animation_file_entries, output_folder, raw_mode, conversion_mode, len(main_archive_file_entries))
+        common.extract_files(animation_file_entries, output_folder, raw_mode, len(main_archive_file_entries))
+
+        if conversion_mode and not raw_mode:
+            common.extract_songs(main_archive_file_entries, output_folder, '16thcs', song_metadata)
+
         common.extract_overlays(animation_file_entries, output_folder, None)
 
 

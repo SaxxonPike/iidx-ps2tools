@@ -4,7 +4,7 @@ import os
 import struct
 import sys
 
-from iidx_common import COMMAND_MAPPING, COMMAND_MAPPING_REVERSE, create_event_ps2
+from charttool.iidx_common import COMMAND_MAPPING, COMMAND_MAPPING_REVERSE, create_event_ps2
 
 TIMESTAMP_MULTIPLIER = 0x414c # Does this change? Look at game code
 
@@ -23,9 +23,6 @@ def chart_to_json(input_filename):
 
             orig_offset = offset
             offset = round((offset * TIMESTAMP_MULTIPLIER) / 1000)
-
-            if offset == 14927:
-                print("%d %04x" % (offset, orig_offset))
 
             event = create_event_ps2(offset, c1, None, param)
 

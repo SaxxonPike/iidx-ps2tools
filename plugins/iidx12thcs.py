@@ -14,6 +14,8 @@ class Iidx12thCsHandler:
 
     @staticmethod
     def read_songlist(executable_filename, songlist_offset, songlist_count, file_entries, animation_file_entries):
+        song_metadata = {}
+
         with open(executable_filename, "rb") as infile:
             infile.seek(songlist_offset)
 
@@ -25,12 +27,86 @@ class Iidx12thCsHandler:
                 if len(title) == 0:
                     title = "%d" % i
 
-                infile.seek(0x14, 1)
+                infile.seek(0x01, 1)
+                difficulty_beginner = struct.unpack("<B", infile.read(1))
+                infile.seek(0x08, 1)
+                difficulties = struct.unpack("<BBBBBB", infile.read(6))
+
+                infile.seek(0x04, 1)
                 videos_idx = struct.unpack("<II", infile.read(8))
 
                 infile.seek(0x48, 1)
 
                 main_overlay_file_idx = struct.unpack("<I", infile.read(4))[0]
+
+                package_metadata = {
+                    'song_id': i,
+                    'title': title,
+                    'charts': {
+                        'sp_beginner': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulty_beginner if difficulty_beginner != 0 else None,
+                        },
+                        'sp_normal': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[1] if difficulties[1] != 0 else None,
+                        },
+                        'sp_hyper': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[0] if difficulties[0] != 0 else None,
+                        },
+                        'sp_another': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[2] if difficulties[2] != 0 else None,
+                        },
+                        'sp_black': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[2] if difficulties[2] != 0 else None,
+                        },
+                        'dp_beginner': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulty_beginner if difficulty_beginner != 0 else None,
+                        },
+                        'dp_normal': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[4] if difficulties[4] != 0 else None,
+                        },
+                        'dp_hyper': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[3] if difficulties[3] != 0 else None,
+                        },
+                        'dp_another': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[5] if difficulties[5] != 0 else None,
+                        },
+                        'dp_black': {
+                            'filename': None,
+                            'sounds': None,
+                            'bgm': None,
+                            'difficulty': difficulties[5] if difficulties[5] != 0 else None,
+                        },
+                    },
+                    'videos': [],
+                    'overlays': None,
+                }
 
                 overlays = []
                 for oidx in range(0, 8):
@@ -47,9 +123,13 @@ class Iidx12thCsHandler:
                     if 'overlays_new' not in animation_file_entries[main_overlay_file_idx]:
                         animation_file_entries[main_overlay_file_idx]['overlays_new'] = overlays
 
-                    animation_file_entries[main_overlay_file_idx]['real_filename'].append("%s.if" % (title))
-                    animation_file_entries[main_overlay_file_idx]['song_id'] = i
-                    animation_file_entries[main_overlay_file_idx]['title'] = title
+                    animation_file_entries[main_overlay_file_idx]['references'].append({
+                        'filename': "%s.if" % (title),
+                        'song_id': i,
+                        'title': title
+                    })
+
+                    package_metadata['overlays'] = "%s.if" % (title)
 
                 infile.seek(0x24, 1)
 
@@ -57,23 +137,37 @@ class Iidx12thCsHandler:
                 sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
 
                 for index, file_index in enumerate(videos_idx):
-                    if file_index == 0xffff or file_index == 0x00:
+                    if file_index == 0xffff:
                         # Invalid
                         continue
 
-                    file_entries[file_index]['real_filename'].append("%s [%d].mpg" % (title, index))
-                    file_entries[file_index]['song_id'] = i
-                    file_entries[file_index]['title'] = title
+                    for index2, file_index2 in enumerate(videos_idx):
+                        if index2 != index and file_index2 == file_index:
+                            index = index2
+                            break
+
+                    file_entries[file_index]['entries'] = i
+                    file_entries[file_index]['references'].append({
+                        'filename': "%s [%d].mpg" % (title, index),
+                        'song_id': i,
+                        'title': title
+                    })
+
+                    package_metadata['videos'].append("%s [%d].mpg" % (title, index))
 
                 for index, file_index in enumerate(charts_idx):
-                    if file_index == 0xffffffff or file_index == 0x00:
+                    if file_index == 0xffffffff or file_index == 0:
                         # Invalid
                         continue
 
-                    file_entries[file_index]['real_filename'].append("%s [%s].ply" % (title, common.DIFFICULTY_MAPPING.get(index, str(index))))
                     file_entries[file_index]['compression'] = common.decode_lz
-                    file_entries[file_index]['song_id'] = i
-                    file_entries[file_index]['title'] = title
+                    file_entries[file_index]['references'].append({
+                        'filename': "%s [%s].ply" % (title, common.DIFFICULTY_MAPPING.get(index, str(index))),
+                        'song_id': i,
+                        'title': title
+                    })
+
+                    package_metadata['charts'][common.DIFFICULTY_MAPPING.get(index, str(index)).lower().replace(" ", "_")]['filename'] = "%s [%s].ply" % (title, common.DIFFICULTY_MAPPING.get(index, str(index)))
 
                 sound_pairs = [
                     [sounds_idx[0], sounds_idx[2]],
@@ -90,19 +184,36 @@ class Iidx12thCsHandler:
                     for index, file_index in enumerate(pair):
                         is_keysound = index == 0
 
-                        if file_index == 0xffff or file_index == 0x00:
+                        if file_index == 0xffff:
                             # Invalid
                             continue
 
+                        for pair_index2, pair2 in enumerate(sound_pairs):
+                            if pair_index2 != pair_index and pair2[1] == pair[0]:
+                                pair_index = pair_index2
+                                break
+
                         if is_keysound:
-                            file_entries[file_index]['real_filename'].append("%s [%d].wvb" % (title, pair_index))
+                            file_entries[file_index]['references'].append({
+                                'filename': "%s [%d].wvb" % (title, pair_index),
+                                'song_id': i,
+                                'title': title
+                            })
+
+                            package_metadata['charts'][common.DIFFICULTY_MAPPING.get(pair_index, str(pair_index)).lower().replace(" ", "_")]['sounds'] = "%s [%d].wvb" % (title, pair_index)
+
                         else:
-                            file_entries[file_index]['real_filename'].append("%s [%d].pcm" % (title, pair_index))
+                            file_entries[file_index]['references'].append({
+                                'filename': "%s [%d].pcm" % (title, pair_index),
+                                'song_id': i,
+                                'title': title
+                            })
 
-                        file_entries[file_index]['song_id'] = i
-                        file_entries[file_index]['title'] = title
+                            package_metadata['charts'][common.DIFFICULTY_MAPPING.get(pair_index, str(pair_index)).lower().replace(" ", "_")]['bgm'] = "%s [%d].pcm" % (title, pair_index)
 
-        return file_entries
+                song_metadata[i] = package_metadata
+
+        return file_entries, song_metadata
 
 
     @staticmethod
@@ -114,10 +225,14 @@ class Iidx12thCsHandler:
 
         animation_file_entries = filetable_readers.dat_filetable_reader_modern(exe_filename, os.path.join(input_folder, "data1.dat"), 0x100108, 0x1be0 // 16)
 
-        Iidx12thCsHandler.read_songlist(exe_filename, 0x115f10, 0x7470 // 0x144, main_archive_file_entries, animation_file_entries)
+        _, song_metadata = Iidx12thCsHandler.read_songlist(exe_filename, 0x115f10, 0x7470 // 0x144, main_archive_file_entries, animation_file_entries)
 
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
-        common.extract_files(animation_file_entries, output_folder, raw_mode, conversion_mode, len(main_archive_file_entries))
+        common.extract_files(animation_file_entries, output_folder, raw_mode, len(main_archive_file_entries))
+
+        if conversion_mode and not raw_mode:
+            common.extract_songs(main_archive_file_entries, output_folder, '12thcs', song_metadata)
+
         common.extract_overlays(animation_file_entries, output_folder, None)
 
 

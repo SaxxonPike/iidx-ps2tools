@@ -4,12 +4,13 @@ import os
 import struct
 import sys
 
-from iidx_common import COMMAND_MAPPING, COMMAND_MAPPING_REVERSE, create_event_ps2
+from charttool.iidx_common import COMMAND_MAPPING, COMMAND_MAPPING_REVERSE, create_event_ps2
 
 def chart_to_json(input_filename):
     if not input_filename or not os.path.exists(input_filename):
         return None
 
+    print(input_filename)
     with open(input_filename, "rb") as infile:
         chart_offset = struct.unpack("<I", infile.read(4))[0]
 

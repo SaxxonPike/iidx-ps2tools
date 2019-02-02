@@ -1,6 +1,6 @@
 import json
 
-from plugins.iidx3rdcs import Iidx3rdCsFormat
+from charttool.plugins.iidx3rdcs import Iidx3rdCsFormat
 
 class Iidx4thCsFormat:
     @staticmethod

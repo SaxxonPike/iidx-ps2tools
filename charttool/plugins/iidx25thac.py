@@ -6,7 +6,7 @@ import struct
 import sys
 from collections import OrderedDict
 
-from iidx_common import COMMAND_MAPPING, COMMAND_MAPPING_REVERSE, IIDX_AC_DIFFICULTY_MAPPING, IIDX_AC_DIFFICULTY_MAPPING_REVERSE, ac_parse_file
+from charttool.iidx_common import COMMAND_MAPPING, COMMAND_MAPPING_REVERSE, IIDX_AC_DIFFICULTY_MAPPING, IIDX_AC_DIFFICULTY_MAPPING_REVERSE, ac_parse_file
 
 def chart_to_json(infile, chart_offset, chart_size):
     infile.seek(chart_offset)

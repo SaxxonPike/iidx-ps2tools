@@ -54,7 +54,7 @@ class BeatmaniaUsCsHandler:
                 sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
 
                 for index, file_index in enumerate(videos_idx):
-                    if file_index == 0xffff or file_index == 0x00:
+                    if file_index == 0xffff:
                         # Invalid
                         continue
 
@@ -62,7 +62,7 @@ class BeatmaniaUsCsHandler:
 
 
                 for index, file_index in enumerate(charts_idx):
-                    if file_index == 0xffffffff or file_index == 0x00:
+                    if file_index == 0xffffffff or file_index == 0:
                         # Invalid
                         continue
 
@@ -84,7 +84,7 @@ class BeatmaniaUsCsHandler:
                     for index, file_index in enumerate(pair):
                         is_keysound = index == 0
 
-                        if file_index == 0xffff or file_index == 0x00:
+                        if file_index == 0xffff:
                             # Invalid
                             continue
 

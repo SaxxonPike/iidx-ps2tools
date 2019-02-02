@@ -7,7 +7,20 @@ import blowfish
 
 import common
 
+overlay_cache = {}
+
+def clear_cache(filename):
+    if filename in overlay_cache:
+        for k in overlay_cache[filename]['image_cache']:
+            overlay_cache[filename]['image_cache'][k].close()
+
+        del overlay_cache[filename]
+
+
 def read_frames_from_ifs(filename):
+    if filename in overlay_cache:
+        return overlay_cache[filename]['frame_cache']
+
     data = open(filename, "rb").read()
 
     file_offsets = []
@@ -38,6 +51,11 @@ def read_frames_from_ifs(filename):
         overlay_images[img_start_idx] = Image.frombytes('P', (128, 128), raw_data)
 
         img_start_idx += 1
+
+    overlay_cache[filename] = {
+        'frame_cache': overlay_images,
+        'image_cache': {}
+    }
 
     return overlay_images
 
@@ -110,7 +128,6 @@ def extract_overlay(exe_filename, ifs_filename, palette_idx, overlay_id, output_
 
         sprites.append(cur_frame)
 
-
     overlay_images = read_frames_from_ifs(ifs_filename)
 
     frames = []
@@ -121,30 +138,34 @@ def extract_overlay(exe_filename, ifs_filename, palette_idx, overlay_id, output_
         for sprite in sprite_parts:
             crop_region = (sprite['src_x'], sprite['src_y'], sprite['src_x'] + sprite['src_w'], sprite['src_y'] + sprite['src_h'])
             dst_region = (sprite['dst_x'], sprite['dst_y'], sprite['dst_x'] + sprite['src_w'], sprite['dst_y'] + sprite['src_h'])
-            src_img = overlay_images[sprite['img_idx']].crop(crop_region)
 
-            palette = []
+            k = "{}_{}_{}".format(sprite['img_idx'], sprite['palette'], crop_region)
 
-            trans_color = palettes[sprite['palette']][0]
+            if k not in overlay_cache[ifs_filename]['image_cache']:
+                src_img = overlay_images[sprite['img_idx']].crop(crop_region)
 
-            for color in palettes[sprite['palette']]:
-                palette.append(color[2])
-                palette.append(color[1])
-                palette.append(color[0])
+                palette = []
+                trans_color = palettes[sprite['palette']][0][:3][::-1]
 
-            src_img.putpalette(palette)
+                for color in palettes[sprite['palette']]:
+                    palette.append(color[2])
+                    palette.append(color[1])
+                    palette.append(color[0])
 
-            src_img = src_img.convert("RGBA")
-            datas = src_img.getdata()
+                src_img.putpalette(palette)
 
-            newData = []
-            for item in datas:
-                if item[0] == trans_color[2] and item[1] == trans_color[1] and item[2] == trans_color[0]:
-                    newData.append((255, 255, 255, 0))
-                else:
-                    newData.append(item)
+                src_img = src_img.convert("RGBA")
+                datas = src_img.load()
 
-            src_img.putdata(newData)
+                for y in range(src_img.size[1]):
+                    for x in range(src_img.size[0]):
+                        if datas[x, y][:3] == trans_color:
+                            datas[x, y] = (255, 255, 255, 0)
+
+                overlay_cache[ifs_filename]['image_cache'][k] = src_img.copy()
+
+            else:
+                src_img = overlay_cache[ifs_filename]['image_cache'][k].copy()
 
             if (sprite['rotation'] & 0x01) == 1:
                 src_img = ImageOps.flip(src_img)
@@ -155,7 +176,10 @@ def extract_overlay(exe_filename, ifs_filename, palette_idx, overlay_id, output_
             if sprite['rotation'] not in [0, 1, 2, 3]:
                 print("Found known rotation flag:", sprite['rotation'])
 
-            output.paste(src_img, dst_region, src_img.convert("RGBA"))
+            output.paste(src_img, dst_region, src_img)
+
+            src_img.close()
+            del src_img
 
         frames.append(output.crop((171, 0, 171 + 298, 219)).copy())
 

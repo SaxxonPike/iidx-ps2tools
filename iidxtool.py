@@ -1,11 +1,11 @@
 import argparse
 import importlib
 
-import plugins
+import charttool.plugins
 
 
 def find_handler(input_filename, input_format):
-    formats = [importlib.import_module('plugins.' + name).get_class() for name in plugins.__all__]
+    formats = [importlib.import_module('charttool.plugins.' + name).get_class() for name in charttool.plugins.__all__]
 
     for handler in formats:
         if input_format is not None and handler.get_format_name().lower() == input_format.lower():

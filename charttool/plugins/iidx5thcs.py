@@ -4,7 +4,7 @@ import os
 import struct
 import sys
 
-from iidx_common import COMMAND_MAPPING, COMMAND_MAPPING_REVERSE, create_event_ps2
+from charttool.iidx_common import COMMAND_MAPPING, COMMAND_MAPPING_REVERSE, create_event_ps2
 
 def chart_to_json(input_filename):
     events = []

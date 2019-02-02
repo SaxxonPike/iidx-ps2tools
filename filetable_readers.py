@@ -16,7 +16,7 @@ def dat_filetable_reader_modern(executable_filename, filename, offset, file_coun
             size *= CHUNK_SIZE
 
             file_entries.append({
-                'real_filename': [],
+                'references': [],
                 'filename': filename,
                 'offset': offset,
                 'size': size,
@@ -38,7 +38,7 @@ def filetable_reader_old(executable_filename, filename, offset, file_count, base
             offset *= CHUNK_SIZE
 
             file_entries.append({
-                'real_filename': [],
+                'references': [],
                 'filename': filename,
                 'offset': offset,
                 'size': size,
@@ -60,7 +60,7 @@ def filetable_reader_old2(executable_filename, filename, offset, file_count, bas
             offset *= CHUNK_SIZE
 
             file_entries.append({
-                'real_filename': [],
+                'references': [],
                 'filename': filename,
                 'offset': offset,
                 'size': size,
@@ -83,7 +83,7 @@ def filetable_reader_modern(executable_filename, filename, offset, file_count, b
             size *= CHUNK_SIZE
 
             file_entries.append({
-                'real_filename': [],
+                'references': [],
                 'filename': filename,
                 'offset': offset,
                 'size': size,
@@ -105,7 +105,7 @@ def filetable_reader_modern2(executable_filename, filename, offset, file_count, 
             offset *= CHUNK_SIZE
 
             file_entries.append({
-                'real_filename': [],
+                'references': [],
                 'filename': filename,
                 'offset': offset,
                 'size': size,
