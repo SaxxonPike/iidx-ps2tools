@@ -20,8 +20,8 @@ if __name__ == "__main__":
     parser.add_argument('--input-exe', help='Input PS2 executable file', required=True)
     parser.add_argument('--input-folder', help='Input folder', required=True)
     parser.add_argument('--output', help='Output folder', required=True)
-    parser.add_argument('--convert', help="Conversion mode (can't be used with raw mode)")
-    parser.add_argument('--raw', help="Raw extraction mode (can't be used with conversion mode)")
+    parser.add_argument('--convert', help="Conversion mode (can't be used with raw mode)", action="store_true")
+    parser.add_argument('--raw', help="Raw extraction mode (can't be used with conversion mode)", action="store_true")
     args = parser.parse_args()
 
     if args.convert == True:
