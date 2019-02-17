@@ -53,13 +53,13 @@ class Iidx12thCsHandler:
                             'filename': None,
                             'sounds': None,
                             'bgm': None,
-                            'difficulty': difficulties[1] if difficulties[1] != 0 else None,
+                            'difficulty': difficulties[0] if difficulties[0] != 0 else None,
                         },
                         'sp_hyper': {
                             'filename': None,
                             'sounds': None,
                             'bgm': None,
-                            'difficulty': difficulties[0] if difficulties[0] != 0 else None,
+                            'difficulty': difficulties[1] if difficulties[1] != 0 else None,
                         },
                         'sp_another': {
                             'filename': None,
@@ -83,13 +83,13 @@ class Iidx12thCsHandler:
                             'filename': None,
                             'sounds': None,
                             'bgm': None,
-                            'difficulty': difficulties[4] if difficulties[4] != 0 else None,
+                            'difficulty': difficulties[3] if difficulties[3] != 0 else None,
                         },
                         'dp_hyper': {
                             'filename': None,
                             'sounds': None,
                             'bgm': None,
-                            'difficulty': difficulties[3] if difficulties[3] != 0 else None,
+                            'difficulty': difficulties[4] if difficulties[4] != 0 else None,
                         },
                         'dp_another': {
                             'filename': None,
@@ -136,7 +136,7 @@ class Iidx12thCsHandler:
                 charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
                 sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
 
-                for index, file_index in enumerate(videos_idx):
+                for index, file_index in enumerate(videos_idx[:1]):
                     if file_index == 0xffff:
                         # Invalid
                         continue
@@ -230,10 +230,11 @@ class Iidx12thCsHandler:
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
         common.extract_files(animation_file_entries, output_folder, raw_mode, len(main_archive_file_entries))
 
-        if conversion_mode and not raw_mode:
+        if 'song' in conversion_mode and not raw_mode:
             common.extract_songs(main_archive_file_entries, output_folder, '12thcs', song_metadata)
 
-        common.extract_overlays(animation_file_entries, output_folder, None)
+        if 'overlay' in conversion_mode and not raw_mode:
+            common.extract_overlays(animation_file_entries, output_folder, None)
 
 
 def get_class():

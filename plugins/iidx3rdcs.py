@@ -234,17 +234,18 @@ class Iidx3rdCsHandler:
 
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
 
-        if conversion_mode and not raw_mode:
+        if 'song' in conversion_mode and not raw_mode:
             common.extract_songs(main_archive_file_entries, output_folder, '3rdcs', song_metadata)
 
-        common.extract_overlays(main_archive_file_entries, output_folder, { # 3rd
-            'base_offset': 0xff000,
-            'palette_table': 0x13d128,
-            'animation_table': 0x7ac70,
-            'animation_data_table': 0x7df48,
-            'tile_table': 0x94ff8,
-            'animation_parts_table': 0x130ac8,
-        })
+        if 'overlay' in conversion_mode and not raw_mode:
+            common.extract_overlays(main_archive_file_entries, output_folder, { # 3rd
+                'base_offset': 0xff000,
+                'palette_table': 0x13d128,
+                'animation_table': 0x7ac70,
+                'animation_data_table': 0x7df48,
+                'tile_table': 0x94ff8,
+                'animation_parts_table': 0x130ac8,
+            })
 
 
 def get_class():

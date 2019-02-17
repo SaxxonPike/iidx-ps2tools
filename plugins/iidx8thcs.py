@@ -246,17 +246,18 @@ class Iidx8thCsHandler:
 
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
 
-        if conversion_mode and not raw_mode:
+        if 'song' in conversion_mode and not raw_mode:
             common.extract_songs(main_archive_file_entries, output_folder, '8thcs', song_metadata)
 
-        common.extract_overlays(main_archive_file_entries, output_folder, { # 8th
-            'base_offset': 0xfff80,
-            'palette_table': 0x124a20,
-            'animation_table': 0x124ba0,
-            'animation_data_table': 0x127480,
-            'tile_table': 0x136f10,
-            'animation_parts_table': 0x191bd0,
-        })
+        if 'overlay' in conversion_mode and not raw_mode:
+            common.extract_overlays(main_archive_file_entries, output_folder, { # 8th
+                'base_offset': 0xfff80,
+                'palette_table': 0x124a20,
+                'animation_table': 0x124ba0,
+                'animation_data_table': 0x127480,
+                'tile_table': 0x136f10,
+                'animation_parts_table': 0x191bd0,
+            })
 
 
 def get_class():

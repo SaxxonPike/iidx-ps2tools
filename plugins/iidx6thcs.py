@@ -239,17 +239,18 @@ class Iidx6thCsHandler:
 
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
 
-        if conversion_mode and not raw_mode:
+        if 'song' in conversion_mode and not raw_mode:
             common.extract_songs(main_archive_file_entries, output_folder, '6thcs', song_metadata)
 
-        common.extract_overlays(main_archive_file_entries, output_folder, { # 6th
-            'base_offset': 0xff000,
-            'palette_table': 0x171138,
-            'animation_table': 0xd1dc4,
-            'animation_data_table': 0xd63a8,
-            'tile_table': 0xeb3d8,
-            'animation_parts_table': 0x15e298,
-        })
+        if 'overlay' in conversion_mode and not raw_mode:
+            common.extract_overlays(main_archive_file_entries, output_folder, { # 6th
+                'base_offset': 0xff000,
+                'palette_table': 0x171138,
+                'animation_table': 0xd1dc4,
+                'animation_data_table': 0xd63a8,
+                'tile_table': 0xeb3d8,
+                'animation_parts_table': 0x15e298,
+            })
 
 
 def get_class():

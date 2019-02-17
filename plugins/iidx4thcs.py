@@ -201,8 +201,6 @@ class Iidx4thCsHandler:
                             # Invalid
                             continue
 
-                        print(file_index)
-
                         for pair_index2, pair2 in enumerate(sound_pairs):
                             if pair_index2 != pair_index and pair2[1] == pair[0]:
                                 pair_index = pair_index2
@@ -240,17 +238,18 @@ class Iidx4thCsHandler:
 
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
 
-        if conversion_mode and not raw_mode:
+        if 'song' in conversion_mode and not raw_mode:
             common.extract_songs(main_archive_file_entries, output_folder, '4thcs', song_metadata)
 
-        common.extract_overlays(main_archive_file_entries, output_folder, { # 4th
-            'base_offset': 0xff000,
-            'palette_table': 0x12b4f0,
-            'animation_table': 0x8e108,
-            'animation_data_table': 0x91640,
-            'tile_table': 0xa6a80,
-            'animation_parts_table': 0x11ec50,
-        })
+        if 'overlay' in conversion_mode and not raw_mode:
+            common.extract_overlays(main_archive_file_entries, output_folder, { # 4th
+                'base_offset': 0xff000,
+                'palette_table': 0x12b4f0,
+                'animation_table': 0x8e108,
+                'animation_data_table': 0x91640,
+                'tile_table': 0xa6a80,
+                'animation_parts_table': 0x11ec50,
+            })
 
 
 def get_class():

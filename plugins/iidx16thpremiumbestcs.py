@@ -27,10 +27,11 @@ class Iidx16thPremiumBestCsHandler:
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
         common.extract_files(animation_file_entries, output_folder, raw_mode, len(main_archive_file_entries))
 
-        if conversion_mode and not raw_mode:
+        if 'song' in conversion_mode and not raw_mode:
             common.extract_songs(main_archive_file_entries, output_folder, '16thcs', song_metadata)
 
-        common.extract_overlays(animation_file_entries, output_folder, None)
+        if 'overlay' in conversion_mode and not raw_mode:
+            common.extract_overlays(animation_file_entries, output_folder, None)
 
 
 def get_class():

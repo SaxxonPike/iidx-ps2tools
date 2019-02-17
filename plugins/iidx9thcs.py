@@ -24,8 +24,6 @@ class Iidx9thCsHandler:
 
                 title = infile.read(0x40).decode('shift-jis').strip('\0').strip()
 
-                print("%s %08x" % (title, infile.tell() - 0x40))
-
                 if len(title) == 0:
                     title = "%d" % i
 
@@ -135,7 +133,7 @@ class Iidx9thCsHandler:
                 charts_idx = struct.unpack("<IIIIIIII", infile.read(0x20))
                 sounds_idx = struct.unpack("<HHHHHHHHHHHHHHHH", infile.read(0x20))
 
-                for index, file_index in enumerate(videos_idx):
+                for index, file_index in enumerate(videos_idx[:1]):
                     if file_index == 0xffff:
                         # Invalid
                         continue
@@ -227,10 +225,11 @@ class Iidx9thCsHandler:
         common.extract_files(main_archive_file_entries, output_folder, raw_mode)
         common.extract_files(animation_file_entries, output_folder, raw_mode, len(main_archive_file_entries))
 
-        if conversion_mode and not raw_mode:
+        if 'song' in conversion_mode and not raw_mode:
             common.extract_songs(main_archive_file_entries, output_folder, '9thcs', song_metadata)
 
-        common.extract_overlays(animation_file_entries, output_folder, None)
+        if 'overlay' in conversion_mode and not raw_mode:
+            common.extract_overlays(animation_file_entries, output_folder, None)
 
 
 def get_class():
