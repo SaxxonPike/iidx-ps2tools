@@ -1,4 +1,5 @@
 import argparse
+import math
 import os
 import struct
 import sys
@@ -9,7 +10,7 @@ import threading
 import pydub
 import common
 
-def convert_vgmstream(input_filename, output_filename, output_format=None, output_frame_rate=None, output_sample_width=None, output_bitrate=None):
+def convert_vgmstream(input_filename, output_filename, output_format=None, output_frame_rate=None, output_sample_width=None, output_bitrate=None, volume=100):
     subprocess.call('vgmstream_cli.exe -q -o "%s" "%s"' % (output_filename, input_filename))
 
     if output_format != None:
@@ -21,6 +22,22 @@ def convert_vgmstream(input_filename, output_filename, output_format=None, outpu
 
         if output_sample_width:
             wav = wav.set_sample_width(output_sample_width // 8)
+
+        if volume != 100:
+            wav += percentage_to_db(volume)
+
+        with open(input_filename, "rb") as infile:
+            header = infile.read(4)
+            if header == b'\x01\x00\x64\x08':
+                infile.seek(0x28)
+                internal_volume = struct.unpack("<I", infile.read(4))[0]
+
+            else:
+                infile.seek(0x05, 0)
+                internal_volume = struct.unpack("<B", infile.read(1))[0]
+
+            if internal_volume != 100:
+                wav += percentage_to_db(internal_volume)
 
         if output_bitrate:
             wav.export(wav_output_filename, format=output_format, bitrate=output_bitrate)
@@ -35,7 +52,6 @@ def percentage_to_db(percentage):
     if percentage == 0:
         return 0
 
-    import math
     return 20 * math.log10(percentage / 100)
 
 
@@ -47,7 +63,7 @@ def find_num_samples(infile, offset):
 
     # TODO: This could be a potential source of problems
     # vgmstream also uses these signatures to detect the end frame, so it should be ok I think?
-    filesize = 0
+    filesize = 32
     while infile.tell() < filelen and infile.read(16) not in [b'\x00\x07' + b'\x77' * 14, b'\x00\x07' + b'\x00' * 14, b'\00' * 16]:
         filesize += 16
 
@@ -161,7 +177,7 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
 
     keysound_entries = []
     for i in range(0, (0x8000 - 0x10) // 0x10):
-        unk1, unk2, duration_ms, pan, volume, file_id, _ = struct.unpack("<HHIBBHI", infile.read(16))
+        unk1, unk2, duration_ms, pan, volume, file_id, volume2 = struct.unpack("<HHIBBHI", infile.read(16))
 
         if unk1 == 0:
             continue
@@ -171,8 +187,9 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
             'pan': pan,
             'file_id': file_id,
             'volume': volume,
+            'volume2': volume2,
             'entry_id': i + 1,
-            'mix': [2, 1][(unk2 >> 8) - 1]
+            'mix': [1, 2][(unk2 >> 8) - 1]
         })
 
     file_count, _, is_encrypted = struct.unpack("<III", infile.read(12))
@@ -186,7 +203,7 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
             'file_id': i,
             'offset': offset,
             'filesize': filesize,
-            'unk1': unk1, # Does one of these relate to the sample rate somehow?
+            'unk1': unk1,
             'unk2': unk2 >> 8,
             'unk2o': unk2,
             'unk3': unk3,
@@ -200,6 +217,7 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
         size = file_entries[entry['file_id']]['filesize']
         offset = data_offset + file_entries[entry['file_id']]['offset']
         volume = entry['volume']
+        volume2 = entry['volume2']
         pan = entry['pan']
         frame_rate = 44100
         channels = 1
@@ -227,7 +245,7 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
             0x54: 12000,
         }
 
-        print(entry['file_id'], frame_rates[file_entries[entry['file_id']]['unk2']])
+        channels = entry['mix']
 
         if file_entries[entry['file_id']]['unk2'] in frame_rates:
             frame_rate = frame_rates[file_entries[entry['file_id']]['unk2']]
@@ -236,7 +254,10 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
             print("Unknown sample rate %04x" % file_entries[entry['file_id']]['unk2o'], output_folder)
             exit(1)
 
-        files.append((entry_id, offset, frame_rate, size, volume, pan))
+        files.append((entry, entry_id, offset, frame_rate, size, volume, volume2, pan, channels, entry['duration_ms']))
+
+    def get_tagged(input, tag):
+        return os.path.splitext(input)[0] + tag + os.path.splitext(input)[1]
 
     def thread_worker():
         while True:
@@ -245,13 +266,28 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
             if item is None:
                 break
 
-            output_filename, offset, frame_rate, size, volume, pan = item
+            entry, output_filename, offset, frame_rate, size, volume, volume2, pan, channels, duration = item
 
-            print("Extracting", output_filename)
+            print("Extracting", output_filename, channels)
 
-            wav_output_filename = output_filename.replace(".pcm", ".wav")
-            convert_vgmstream(output_filename, wav_output_filename)
-            wav = pydub.AudioSegment.from_file(wav_output_filename)
+            if channels == 2:
+                wav_output_filename = output_filename.replace(".pcm", ".wav")
+
+                convert_vgmstream(get_tagged(output_filename, 'l'), get_tagged(wav_output_filename, 'l'))
+                l_wav = pydub.AudioSegment.from_file(get_tagged(wav_output_filename, 'l'))
+
+                convert_vgmstream(get_tagged(output_filename, 'r'), get_tagged(wav_output_filename, 'r'))
+                r_wav = pydub.AudioSegment.from_file(get_tagged(wav_output_filename, 'r'))
+
+                wav = pydub.AudioSegment.from_mono_audiosegments(l_wav, r_wav)
+
+                os.unlink(get_tagged(wav_output_filename, 'l'))
+                os.unlink(get_tagged(wav_output_filename, 'r'))
+
+            else:
+                wav_output_filename = output_filename.replace(".pcm", ".wav")
+                convert_vgmstream(output_filename, wav_output_filename)
+                wav = pydub.AudioSegment.from_file(wav_output_filename)
 
             if output_frame_rate:
                 wav = wav.set_frame_rate(output_frame_rate)
@@ -259,12 +295,18 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
             if output_sample_width:
                 wav = wav.set_sample_width(output_sample_width // 8)
 
-            if entry['mix'] == 1:
-                wav = wav.set_channels(2).pan(((pan - (128 / 2)) / (128 / 2)))
-                wav += percentage_to_db((volume / 64) * 100 * 0.75)
+            if channels == 2:
+                if volume != 127:
+                    wav += percentage_to_db((volume / 127) * 100)
 
             else:
-                wav += percentage_to_db((volume / 127) * 100 * 0.75)
+                wav = wav.pan(((pan - (128 / 2)) / (128 / 2)))
+
+                if volume != 64:
+                    wav += percentage_to_db((volume / 64) * 100)
+
+            if volume2 != 127:
+                wav += percentage_to_db((volume2 / 127) * 100)
 
             wav_output_filename = wav_output_filename.replace(".wav", "." + output_format)
 
@@ -277,23 +319,41 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
             queue_data.task_done()
 
     queue_data = queue.Queue()
-    for entry_id, offset, frame_rate, size, volume, pan in files:
+    for entry, entry_id, offset, frame_rate, size, volume, volume2, pan, channels, duration in files:
         output_filename = os.path.join(output_folder, "%04d.pcm" % entry_id)
 
-        with open(output_filename, "wb") as outfile:
-            outfile.write(struct.pack("<IIII", 0x08640001, 0, 0x800, size))
-            outfile.write(struct.pack("<IIII", 0, 0, frame_rate, channels))
-            outfile.write(struct.pack("<IIII", is_encrypted, 16, 0, 0))
-            outfile.write(bytearray([0] * 0x7d0))
+        duration /= 1000
+        samples_by_duration = math.ceil(((duration + 0.1) * frame_rate) * 1 * 0x10 / 28)
 
+        # TODO: Calculate number of samples by frame rate
+        if channels == 2:
             infile.seek(offset)
-            outfile.write(infile.read(size))
 
-        queue_data.put((output_filename, offset, frame_rate, size, volume, pan))
+            for c in ['l', 'r']:
+                with open(get_tagged(output_filename, c), "wb") as outfile:
+                    outfile.write(struct.pack("<IIII", 0x08640001, 0, 0x800, samples_by_duration))
+                    outfile.write(struct.pack("<IIII", 0, 0, frame_rate, 1))
+                    outfile.write(struct.pack("<IIII", is_encrypted, 16, 0, 0))
+                    outfile.write(bytearray([0] * 0x7d0))
+
+                    outfile.write(infile.read(size))
+                    outfile.write(bytearray([0] * 0x10))
+        else:
+            with open(output_filename, "wb") as outfile:
+                outfile.write(struct.pack("<IIII", 0x08640001, 0, 0x800, samples_by_duration))
+                outfile.write(struct.pack("<IIII", 0, 0, frame_rate, 1))
+                outfile.write(struct.pack("<IIII", is_encrypted, 16, 0, 0))
+                outfile.write(bytearray([0] * 0x7d0))
+
+                infile.seek(offset)
+                outfile.write(infile.read(size))
+                outfile.write(bytearray([0] * 0x10))
+
+        queue_data.put((entry, output_filename, offset, frame_rate, size, volume, volume2, pan, channels, duration))
 
     common.process_queue(queue_data, thread_worker, num_threads)
 
-    for entry_id, _, _, _, _, _ in files:
+    for _, entry_id, _, _, _, _, _, _, _, _ in files:
         remove_ext = ['pcm']
 
         if output_format != "wav":
@@ -302,8 +362,8 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
         for ext in remove_ext:
             output_filename = os.path.join(output_folder, "%04d.%s" % (entry_id, ext))
 
-            if os.path.exists(output_filename):
-                os.unlink(output_filename)
+            # if os.path.exists(output_filename):
+            #     os.unlink(output_filename)
 
 
 def parse_wvb(filename, output_folder, threads=4, output_format="wav", output_frame_rate=44100, output_sample_width=16, output_bitrate=None):

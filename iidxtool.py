@@ -2,6 +2,7 @@ import argparse
 import glob
 import importlib
 import os
+import sys
 
 import charttool.plugins
 

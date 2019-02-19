@@ -127,6 +127,9 @@ for game_folder in glob.glob(glob.escape(sys.argv[1]) + "//*"):
                 wvb_checksum = hashlib.md5(open(wvb_filename, "rb").read()).hexdigest()
                 pcm_checksum = hashlib.md5(open(pcm_filename, "rb").read()).hexdigest()
                 if (wvb_checksum, pcm_checksum) not in parsed_files:
+                    # parse_wvb.main(['--input', wvb_filename, '--output', output_path, '--output-frame-rate', '44100', '--output-sample-width', '16'])
+                    # parse_wvb.convert_vgmstream(pcm_filename, os.path.join(output_path, "0001.wav"), None, 44100, 16, None)
+
                     parse_wvb.main(['--input', wvb_filename, '--output', output_path, '--output-format', 'asf', '--output-frame-rate', '44100', '--output-sample-width', '16', '--output-bitrate', '160K'])
                     parse_wvb.convert_vgmstream(pcm_filename, os.path.join(output_path, "0001.wav"), "asf", 44100, 16, "160K")
                     create_s3p(output_path, output_s3p)

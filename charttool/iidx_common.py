@@ -64,7 +64,7 @@ def ac_parse_file(infile, callback):
 
 
 def create_event_ps2(offset, c1, c2, param):
-    offset = round(offset)
+    offset = int(offset)
 
     if c2 == None:
         c2 = param
