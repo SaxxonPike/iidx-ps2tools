@@ -15,7 +15,7 @@ def chart_to_json(input_filename):
         chart_offset = struct.unpack("<I", infile.read(4))[0]
 
         if chart_offset != 4:
-            timestamp_multiplier = struct.unpack("<I", infile.read(4))[0]
+            timestamp_multiplier = struct.unpack("<I", infile.read(4))[0] - 10 # Not sure why -10 but it seems to work better
         else:
             # Does this ever occur?
             timestamp_multiplier = 0x414c

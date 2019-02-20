@@ -104,6 +104,8 @@ for game_folder in glob.glob(glob.escape(sys.argv[1]) + "//*"):
         package_metadata['_charts'].append(os.path.basename(output_chart_filename))
         package_metadata['_videos'].append(song_metadata['videos'][0])
 
+        bgm_volume = 100
+
         # Extract audio files here
         parsed_files = []
         part_list = ['sp', 'dp']
@@ -132,6 +134,7 @@ for game_folder in glob.glob(glob.escape(sys.argv[1]) + "//*"):
 
                     parse_wvb.main(['--input', wvb_filename, '--output', output_path, '--output-format', 'asf', '--output-frame-rate', '44100', '--output-sample-width', '16', '--output-bitrate', '160K'])
                     parse_wvb.convert_vgmstream(pcm_filename, os.path.join(output_path, "0001.wav"), "asf", 44100, 16, "160K", fix_samples=True)
+                    bgm_volume = parse_wvb.get_pcm_volume(pcm_filename)
                     create_s3p(output_path, output_s3p)
 
                     package_metadata['_sounds'].append(os.path.basename(output_s3p))
@@ -154,5 +157,7 @@ for game_folder in glob.glob(glob.escape(sys.argv[1]) + "//*"):
         # TODO: Convert overlay to afp here
 
         # Save package file
+        package_metadata['volume'] = bgm_volume
+
         print(package_metadata)
         json.dump(package_metadata, open(os.path.join(song_folder, "package", "package.json"), "w"), ensure_ascii=False, indent=4)

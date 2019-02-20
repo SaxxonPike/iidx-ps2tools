@@ -12,12 +12,10 @@ import threading
 import pydub
 import common
 
-def convert_vgmstream(input_filename, output_filename, output_format=None, output_frame_rate=None, output_sample_width=None, output_bitrate=None, volume=100, fix_samples=False):
-    original_samples = None
-    temp_file = input_filename
-
+def get_pcm_volume(input_filename):
     with open(input_filename, "rb") as infile:
         header = infile.read(4)
+
         if header == b'\x01\x00\x64\x08':
             infile.seek(0x28)
             internal_volume = struct.unpack("<I", infile.read(4))[0]
@@ -26,6 +24,18 @@ def convert_vgmstream(input_filename, output_filename, output_format=None, outpu
             infile.seek(0x05, 0)
             internal_volume = struct.unpack("<B", infile.read(1))[0]
 
+    return internal_volume
+
+
+def convert_vgmstream(input_filename, output_filename, output_format=None, output_frame_rate=None, output_sample_width=None, output_bitrate=None, volume=100, fix_samples=False):
+    original_samples = None
+    temp_file = input_filename
+
+    internal_volume = get_pcm_volume(input_filename)
+
+    with open(input_filename, "rb") as infile:
+        header = infile.read(4)
+        if header != b'\x01\x00\x64\x08':
             if fix_samples:
                 infile.seek(0, 0)
                 original_samples = struct.unpack(">I", infile.read(4))[0]
@@ -375,21 +385,19 @@ def parse_wvb_new(infile, output_folder, num_threads, output_format="wav", outpu
                 with open(get_tagged(output_filename, c), "wb") as outfile:
                     outfile.write(struct.pack("<IIII", 0x08640001, 0, 0x800, samples_by_duration))
                     outfile.write(struct.pack("<IIII", 0, 0, frame_rate, 1))
-                    outfile.write(struct.pack("<IIII", is_encrypted, 16, 0, 0))
+                    outfile.write(struct.pack("<IIII", is_encrypted, 16, 100, 0))
                     outfile.write(bytearray([0] * 0x7d0))
 
                     outfile.write(infile.read(size))
-                    outfile.write(bytearray([0] * 0x10))
         else:
             with open(output_filename, "wb") as outfile:
                 outfile.write(struct.pack("<IIII", 0x08640001, 0, 0x800, samples_by_duration))
                 outfile.write(struct.pack("<IIII", 0, 0, frame_rate, 1))
-                outfile.write(struct.pack("<IIII", is_encrypted, 16, 0, 0))
+                outfile.write(struct.pack("<IIII", is_encrypted, 16, 100, 0))
                 outfile.write(bytearray([0] * 0x7d0))
 
                 infile.seek(offset)
                 outfile.write(infile.read(size))
-                outfile.write(bytearray([0] * 0x10))
 
         queue_data.put((entry, output_filename, offset, frame_rate, size, volume, volume2, pan, channels, duration))
 
