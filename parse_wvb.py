@@ -1,17 +1,50 @@
 import argparse
 import math
 import os
+import shutil
 import struct
 import sys
 import subprocess
 import queue
+import tempfile
 import threading
 
 import pydub
 import common
 
-def convert_vgmstream(input_filename, output_filename, output_format=None, output_frame_rate=None, output_sample_width=None, output_bitrate=None, volume=100):
-    subprocess.call('vgmstream_cli.exe -q -o "%s" "%s"' % (output_filename, input_filename))
+def convert_vgmstream(input_filename, output_filename, output_format=None, output_frame_rate=None, output_sample_width=None, output_bitrate=None, volume=100, fix_samples=False):
+    original_samples = None
+    temp_file = input_filename
+
+    with open(input_filename, "rb") as infile:
+        header = infile.read(4)
+        if header == b'\x01\x00\x64\x08':
+            infile.seek(0x28)
+            internal_volume = struct.unpack("<I", infile.read(4))[0]
+
+        else:
+            infile.seek(0x05, 0)
+            internal_volume = struct.unpack("<B", infile.read(1))[0]
+
+            if fix_samples:
+                infile.seek(0, 0)
+                original_samples = struct.unpack(">I", infile.read(4))[0]
+
+                temp_id, temp_file = tempfile.mkstemp(suffix=".pcm")
+                os.close(temp_id)
+
+                shutil.copyfile(input_filename, temp_file)
+
+    if fix_samples and original_samples:
+        with open(temp_file, "rb+") as infile:
+            samples = find_num_samples(infile, 0x800)
+            infile.seek(0, 0)
+            infile.write(struct.pack(">I", samples))
+
+    subprocess.call('vgmstream_cli.exe -q -o "%s" "%s"' % (output_filename, temp_file))
+
+    if fix_samples and original_samples:
+        os.unlink(temp_file)
 
     if output_format != None:
         wav = pydub.AudioSegment.from_file(output_filename)
@@ -26,18 +59,8 @@ def convert_vgmstream(input_filename, output_filename, output_format=None, outpu
         if volume != 100:
             wav += percentage_to_db(volume)
 
-        with open(input_filename, "rb") as infile:
-            header = infile.read(4)
-            if header == b'\x01\x00\x64\x08':
-                infile.seek(0x28)
-                internal_volume = struct.unpack("<I", infile.read(4))[0]
-
-            else:
-                infile.seek(0x05, 0)
-                internal_volume = struct.unpack("<B", infile.read(1))[0]
-
-            if internal_volume != 100:
-                wav += percentage_to_db(internal_volume)
+        if internal_volume != 100:
+            wav += percentage_to_db(internal_volume)
 
         if output_bitrate:
             wav.export(wav_output_filename, format=output_format, bitrate=output_bitrate)
@@ -64,7 +87,7 @@ def find_num_samples(infile, offset):
     # TODO: This could be a potential source of problems
     # vgmstream also uses these signatures to detect the end frame, so it should be ok I think?
     filesize = 32
-    while infile.tell() < filelen and infile.read(16) not in [b'\x00\x07' + b'\x77' * 14, b'\x00\x07' + b'\x00' * 14, b'\00' * 16]:
+    while infile.tell() < filelen and infile.read(16) not in [b'\x00\x01' + b'\x77' * 14, b'\x00\x07' + b'\x77' * 14, b'\x00\x07' + b'\x00' * 14, b'\00' * 16]:
         filesize += 16
 
     infile.seek(cur_offset)
@@ -85,6 +108,8 @@ def parse_wvb_old(infile, output_folder, num_threads, output_format="wav", outpu
         entry_id, _, _, volume, pan, entry_type, frame_rate1, frame_rate2, offset1, offset2, filesize, _ = struct.unpack("<HHBBBBIIIIII", infile.read(0x20))
 
         cur_offset = infile.tell()
+
+        entry_id -= 1
 
         entry_type &= 0x0f
 
@@ -148,7 +173,7 @@ def parse_wvb_old(infile, output_folder, num_threads, output_format="wav", outpu
         output_filename = os.path.join(output_folder, "%04d.pcm" % entry_id)
 
         with open(output_filename, "wb") as outfile:
-            outfile.write(struct.pack(">IHHB", size, 0, frame_rate, 1))
+            outfile.write(struct.pack(">IHHB", size, 0x64, frame_rate, 1))
             outfile.write(bytearray([0] * 0x7f7))
 
             infile.seek(offset)
@@ -157,6 +182,23 @@ def parse_wvb_old(infile, output_folder, num_threads, output_format="wav", outpu
         queue_data.put((output_filename, offset, frame_rate, size, volume, pan))
 
     common.process_queue(queue_data, thread_worker, num_threads)
+
+    # Create blank wavs to fill in empty spots
+    entry_ids = [x[0] for x in files]
+
+    for i in range(max(entry_ids)):
+        if i not in entry_ids:
+            print("Creating", i)
+
+            output_filename = os.path.join(output_folder, "%04d.%s" % (i, output_format))
+
+            wav = pydub.AudioSegment.silent(0).set_frame_rate(44100)
+
+            if output_bitrate:
+                wav.export(output_filename, format=output_format, bitrate=output_bitrate)
+
+            else:
+                wav.export(output_filename, format=output_format)
 
     for entry_id, _, _, _, _, _ in files:
         remove_ext = ['pcm']

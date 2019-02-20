@@ -131,7 +131,7 @@ for game_folder in glob.glob(glob.escape(sys.argv[1]) + "//*"):
                     # parse_wvb.convert_vgmstream(pcm_filename, os.path.join(output_path, "0001.wav"), None, 44100, 16, None)
 
                     parse_wvb.main(['--input', wvb_filename, '--output', output_path, '--output-format', 'asf', '--output-frame-rate', '44100', '--output-sample-width', '16', '--output-bitrate', '160K'])
-                    parse_wvb.convert_vgmstream(pcm_filename, os.path.join(output_path, "0001.wav"), "asf", 44100, 16, "160K")
+                    parse_wvb.convert_vgmstream(pcm_filename, os.path.join(output_path, "0001.wav"), "asf", 44100, 16, "160K", fix_samples=True)
                     create_s3p(output_path, output_s3p)
 
                     package_metadata['_sounds'].append(os.path.basename(output_s3p))
