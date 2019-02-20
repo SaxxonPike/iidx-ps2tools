@@ -33,9 +33,9 @@ class Iidx13thCsHandler:
 
                 infile.seek(0x02, 1)
                 videos_idx = struct.unpack("<II", infile.read(8))
+                bga_offset = ctypes.c_short(struct.unpack("<H", infile.read(2))[0]).value + 2
 
-                infile.seek(0x04, 1)
-
+                infile.seek(0x02, 1)
                 main_overlay_file_idx = struct.unpack("<I", infile.read(4))[0]
 
                 package_metadata = {
@@ -104,6 +104,7 @@ class Iidx13thCsHandler:
                         },
                     },
                     'videos': [],
+                    'bga_offset': bga_offset,
                     'overlays': None,
                 }
 
