@@ -79,10 +79,10 @@ for game_folder in glob.glob(glob.escape(sys.argv[1]) + "//*"):
             "difficulties": [0, 0, 0, 0, 0, 0, 0, 0],
             "volume": 100,
             "file_identifiers": [],
-            "bga_filename": "",
-            "bga_delay": 0,
-            "afp_flag": 0,
-            "afp_data": [ "0" * 64 ] * 10,
+            "bga_filename": "", # TODO
+            "bga_delay": 0, # TODO
+            "afp_flag": 0, # TODO
+            "afp_data": [ "0" * 64 ] * 10, # TODO
         }
 
         # Convert chart to .1
